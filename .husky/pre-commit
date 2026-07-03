@@ -2,5 +2,5 @@
 
 cd web
 
-bun lint
-bunx lint-staged
+npm run lint
+npx lint-staged
