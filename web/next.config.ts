@@ -6,12 +6,12 @@ const nextConfig: NextConfig = {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (rule: any) => rule.test?.test?.(".svg"),
     );
-
     config.module.rules.push({
       ...fileLoaderRule,
       test: /\.svg$/i,
       resourceQuery: /url/,
     });
+
 
     config.module.rules.push({
       test: /\.svg$/i,
@@ -20,10 +20,13 @@ const nextConfig: NextConfig = {
       use: ["@svgr/webpack"],
     });
 
+
     fileLoaderRule.exclude = /\.svg$/i;
 
     return config;
   },
+
+  turbopack: {},
 };
 
 export default nextConfig;
