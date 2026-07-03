@@ -1,6 +1,7 @@
 import { Typography } from "@/shared";
 import { MeetingIcon, LessonIcon, BroadcastIcon } from "@/shared/icons/24/";
 import { SessionModeCard } from "@/features/create-lesson";
+import MeetingButton from "@/components/meeting-button";
 import { SessionHistory } from "@/widgets/session-history";
 
 export default function Home() {
@@ -10,7 +11,7 @@ export default function Home() {
         <Typography variant="h1">Cyber modes</Typography>
         <div className="mt-14.25">
           <div className="grid grid-cols-3 gap-5 mt-14">
-            <SessionModeCard icon={<MeetingIcon />} title="Meeting" />
+            <MeetingButton icon={<MeetingIcon />} title="Meeting" />
 
             <SessionModeCard icon={<LessonIcon />} title="Active lesson" />
 

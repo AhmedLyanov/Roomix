@@ -1,6 +1,10 @@
-import { UserButton } from "@clerk/nextjs";
+"use client";
 
-import { RoomControl, ShareLink } from "@/features";
+import { UserButton } from "@clerk/nextjs";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+
+import { RoomControl, ShareLink, useRoomSession } from "@/features";
 
 import { Button } from "@/shared";
 
@@ -17,30 +21,52 @@ import {
   MagicIcon,
   RoomPluginsIcon,
 } from "@/shared/icons/24";
+import RoomClient from "@/components/room/RoomClient";
 
-export default async function RoomPage() {
+export default function RoomPage({ params }: { params: { roomId: string } }) {
+  const router = useRouter();
+  const [userName, setUserName] = useState<string>("");
+  const roomUrl = typeof window !== "undefined" ? window.location.href : "";
+
+  const {
+    remoteVideos,
+    isCameraOn,
+    isMicOn,
+    isScreenSharing,
+    toggleCamera,
+    toggleMic,
+    toggleScreenShare,
+    disconnect,
+  } = useRoomSession({ roomId: params.roomId, userName });
+
+  const [participantCount, setParticipantCount] = useState(1);
+
+  useEffect(() => {
+    const storedName = sessionStorage.getItem("userName");
+    setUserName(storedName || `User ${Math.floor(Math.random() * 1000)}`);
+  }, []);
+
+  useEffect(() => {
+    setParticipantCount(1 + remoteVideos.size);
+  }, [remoteVideos]);
+
+  const handleLeaveRoom = () => {
+    disconnect();
+    router.push("/");
+  };
+
   return (
     <div className="flex h-screen flex-col bg-(--color-background)">
       <header className="relative border-b border-(--room-header-border)">
         <div className="flex items-center justify-between px-4.5 pl-31 pt-3.25 pb-4">
-          <ShareLink />
+          <ShareLink link={roomUrl} />
 
           <div className="flex items-center gap-4">
-            <Button
-              variant="control"
-              icon={<SettingsIcon />}
-            />
+            <Button variant="control" icon={<SettingsIcon />} />
 
-            <Button
-              variant="control"
-              icon={<QuestionIcon />}
-            />
+            <Button variant="control" icon={<QuestionIcon />} />
 
-            <Button
-              variant="control"
-              icon={<LightningIcon />}
-              badge
-            />
+            <Button variant="control" icon={<LightningIcon />} badge />
 
             <div className="h-[45px] w-[45px]">
               <UserButton
@@ -112,7 +138,7 @@ export default async function RoomPage() {
               <ParticipantsIcon />
 
               <span className="text-[14px] leading-none">
-                4
+                {participantCount}
               </span>
             </button>
 
@@ -130,12 +156,20 @@ export default async function RoomPage() {
           </div>
 
           <main className="h-full">
-            jkjhkhj
+            <RoomClient roomId={params.roomId} />
           </main>
         </div>
       </div>
 
-      <RoomControl />
+      <RoomControl
+        isCameraOn={isCameraOn}
+        isMicOn={isMicOn}
+        isScreenSharing={isScreenSharing}
+        onToggleCamera={toggleCamera}
+        onToggleMic={toggleMic}
+        onToggleScreenShare={toggleScreenShare}
+        onLeaveRoom={handleLeaveRoom}
+      />
     </div>
   );
 }
