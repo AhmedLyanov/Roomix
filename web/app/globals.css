@@ -1,0 +1,125 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #1e1f28;
+
+  --font-primary: var(--font-apercu);
+  --font-secondary: var(--font-lato);
+
+  --color-black: #1e1f27;
+  --color-gray: #6d6e77;
+  --color-gray-light: #9193a9;
+  --color-neutral-500: #f6f8ff;
+  --color-surface-muted: #f6f8ff;
+  --color-surface-strong: #ffffff;
+  --color-surface-contrast: #272933;
+  --color-accent: #4462ff;
+  --color-accent-hover: #5671ff;
+  --color-border-strong: rgba(68, 69, 76, 0.06);
+  --color-danger: #ff616a;
+
+  --room-header-border: rgba(68, 69, 76, 0.06);
+  --input-color: var(--color-surface-muted);
+
+  --primary-border: var(--color-border-strong);
+  --button-hover-bg: var(--color-surface-strong);
+  --button-primary-bg: var(--color-accent);
+  --button-primary-bg-hover: var(--color-accent-hover);
+  --button-primary-text: #ffffff;
+  --navigation-border-line: #44454c21;
+  --room-navigation-bg: var(--color-surface-contrast);
+  --color-border: var(--color-surface-strong);
+  --room-background: var(--color-surface-contrast);
+  --room-control-primary: var(--color-surface-contrast);
+  --room-link: var(--color-surface-contrast);
+  --color-logo: var(--color-black);
+  --plugin-item-bg-hover: rgba(30, 31, 40, 0.04);
+  --plugin-item-bg-active: rgba(30, 31, 40, 0.08);
+  --theme-switch-bg: #e0e3f6;
+  --theme-switch-active: var(--color-surface-muted);
+  --table-meta-text: var(--color-gray-light);
+  --table-chapter: var(--color-gray);
+  --table-chapter-active: var(--color-accent);
+  --table-meta-bg: var(--color-surface-muted);
+  --table-meta-data: var(--color-foreground);
+  --session-card-bg: var(--color-surface-muted);
+  --session-card-border-gradient: transparent;
+  --session-card-shadow: 0 4px 24px rgba(145, 147, 169, 0.15);
+  --session-card-glow: rgba(255, 255, 255, 0.04);
+  --color-close-conference: var(--color-danger);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}
+
+html.dark {
+  --background: #1e1f28;
+  --foreground: #ffffff;
+
+  --color-black: #ffffff;
+  --color-gray: #9193a9;
+  --color-gray-light: #9193a9;
+  --color-neutral-500: #272933;
+  --color-surface-muted: #1c1e26;
+  --color-surface-strong: #343744;
+  --color-surface-contrast: #272933;
+  --color-accent: #4462ff;
+  --color-accent-hover: #5671ff;
+  --color-border-strong: #323236;
+  --color-danger: #ff616a;
+
+  --primary-border: var(--color-border-strong);
+  --button-hover-bg: var(--color-surface-strong);
+  --button-primary-bg: var(--color-accent);
+  --button-primary-bg-hover: var(--color-accent-hover);
+  --button-primary-text: #ffffff;
+  --navigation-border-line: #44454c;
+  --room-navigation-bg: var(--color-surface-contrast);
+  --color-border: var(--color-surface-strong);
+  --room-background: var(--color-neutral-500);
+  --room-control-primary: var(--color-neutral-500);
+  --room-link: var(--color-neutral-500);
+  --color-logo: var(--color-foreground);
+  --plugin-item-bg-hover: #343744;
+  --plugin-item-bg-active: #3b3f4e;
+  --theme-switch-bg: #111219;
+  --theme-switch-active: var(--color-neutral-500);
+  --table-meta-bg: var(--color-neutral-500);
+  --table-meta-text: var(--color-gray);
+  --table-meta-data: var(--color-foreground);
+  --session-card-bg: var(--color-surface-muted);
+  --session-card-border-gradient: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.18) 0%,
+    rgba(255, 255, 255, 0.06) 50%,
+    transparent 100%
+  );
+  --session-card-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+  --session-card-glow: rgba(255, 255, 255, 0.04);
+
+  --room-header-border: rgba(255, 255, 255, 0.15);
+
+  --input-color: var(--color-neutral-500);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-primary);
+}
+
+.font-lato {
+  font-family: var(--font-secondary);
+}

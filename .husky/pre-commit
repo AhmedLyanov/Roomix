@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+
+cd web
+
+bun lint
+bunx lint-staged
