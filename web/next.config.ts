@@ -12,7 +12,6 @@ const nextConfig: NextConfig = {
       resourceQuery: /url/,
     });
 
-
     config.module.rules.push({
       test: /\.svg$/i,
       issuer: fileLoaderRule.issuer,
@@ -20,13 +19,10 @@ const nextConfig: NextConfig = {
       use: ["@svgr/webpack"],
     });
 
-
     fileLoaderRule.exclude = /\.svg$/i;
 
     return config;
   },
-
-  turbopack: {},
 };
 
 export default nextConfig;
