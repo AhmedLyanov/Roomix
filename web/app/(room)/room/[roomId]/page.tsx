@@ -5,7 +5,6 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 import { RoomControl, ShareLink, useRoomSession } from "@/features";
-
 import { Button } from "@/shared";
 
 import {
@@ -21,39 +20,46 @@ import {
   MagicIcon,
   RoomPluginsIcon,
 } from "@/shared/icons/24";
+
 import RoomClient from "@/components/room/RoomClient";
 
-export default function RoomPage({ params }: { params: { roomId: string } }) {
+export default function RoomPage({
+  params,
+}: {
+  params: { roomId: string };
+}) {
   const router = useRouter();
-  const [userName, setUserName] = useState<string>("");
-  const roomUrl = typeof window !== "undefined" ? window.location.href : "";
 
-  const {
-    remoteVideos,
-    isCameraOn,
-    isMicOn,
-    isScreenSharing,
-    toggleCamera,
-    toggleMic,
-    toggleScreenShare,
-    disconnect,
-  } = useRoomSession({ roomId: params.roomId, userName });
-
-  const [participantCount, setParticipantCount] = useState(1);
+  const [userName, setUserName] = useState("");
 
   useEffect(() => {
     const storedName = sessionStorage.getItem("userName");
-    setUserName(storedName || `User ${Math.floor(Math.random() * 1000)}`);
+
+    setUserName(
+      storedName || `User ${Math.floor(Math.random() * 1000)}`,
+    );
   }, []);
 
-  useEffect(() => {
-    setParticipantCount(1 + remoteVideos.size);
-  }, [remoteVideos]);
+  const roomSession = useRoomSession({
+    roomId: params.roomId,
+    userName,
+  });
+
+  const participantCount = 1 + roomSession.remoteVideos.size;
+
+  const roomUrl =
+    typeof window !== "undefined"
+      ? window.location.href
+      : "";
 
   const handleLeaveRoom = () => {
-    disconnect();
+    roomSession.disconnect();
     router.push("/");
   };
+
+  if (!userName) {
+    return null;
+  }
 
   return (
     <div className="flex h-screen flex-col bg-(--color-background)">
@@ -62,18 +68,29 @@ export default function RoomPage({ params }: { params: { roomId: string } }) {
           <ShareLink link={roomUrl} />
 
           <div className="flex items-center gap-4">
-            <Button variant="control" icon={<SettingsIcon />} />
+            <Button
+              variant="control"
+              icon={<SettingsIcon />}
+            />
 
-            <Button variant="control" icon={<QuestionIcon />} />
+            <Button
+              variant="control"
+              icon={<QuestionIcon />}
+            />
 
-            <Button variant="control" icon={<LightningIcon />} badge />
+            <Button
+              variant="control"
+              icon={<LightningIcon />}
+              badge
+            />
 
             <div className="h-[45px] w-[45px]">
               <UserButton
                 appearance={{
                   elements: {
                     avatarBox: "w-[45px] h-[45px]",
-                    userButtonAvatarBox: "w-[45px] h-[45px]",
+                    userButtonAvatarBox:
+                      "w-[45px] h-[45px]",
                     userButtonTrigger:
                       "w-[45px] h-[45px] rounded-full overflow-hidden",
                   },
@@ -156,18 +173,24 @@ export default function RoomPage({ params }: { params: { roomId: string } }) {
           </div>
 
           <main className="h-full">
-            <RoomClient roomId={params.roomId} />
+            <RoomClient
+              roomId={params.roomId}
+              roomSession={roomSession}
+              userName={userName}
+            />
           </main>
         </div>
       </div>
 
       <RoomControl
-        isCameraOn={isCameraOn}
-        isMicOn={isMicOn}
-        isScreenSharing={isScreenSharing}
-        onToggleCamera={toggleCamera}
-        onToggleMic={toggleMic}
-        onToggleScreenShare={toggleScreenShare}
+        isCameraOn={roomSession.isCameraOn}
+        isMicOn={roomSession.isMicOn}
+        isScreenSharing={roomSession.isScreenSharing}
+        onToggleCamera={roomSession.toggleCamera}
+        onToggleMic={roomSession.toggleMic}
+        onToggleScreenShare={
+          roomSession.toggleScreenShare
+        }
         onLeaveRoom={handleLeaveRoom}
       />
     </div>
