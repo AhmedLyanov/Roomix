@@ -51,6 +51,9 @@
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
+
+  --room-webcam-badge: #1E1F2799;
 }
 
 html.dark {

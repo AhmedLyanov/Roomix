@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useGridLayout } from "@/shared/lib/grid/gridLayout";
+
+import { useGridLayout } from "@/shared/lib/grid/grid-layout";
 import { useFullscreen } from "@/shared/lib/hooks/useFullscreen";
 import { useRoomSession } from "@/features";
+import { Typography } from "@/shared";
 
 interface Props {
   userName: string;
@@ -14,9 +16,12 @@ export default function RoomClient({
   userName,
   roomSession,
 }: Props) {
-  const videoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
-  const localVideoRef = useRef<HTMLVideoElement>(null);
-  const gridRef = useRef<HTMLDivElement>(null);
+  const videoRefs = useRef<Map<string, HTMLVideoElement>>(
+    new Map(),
+  );
+
+  const localVideoRef =
+    useRef<HTMLVideoElement>(null);
 
   const {
     stream,
@@ -24,50 +29,71 @@ export default function RoomClient({
     participants,
   } = roomSession;
 
-  const participantCount = 1 + remoteVideos.size;
+  const participantCount =
+    1 + remoteVideos.size;
 
-  const { layout, videoSize } = useGridLayout(
-    gridRef,
-    participantCount,
-  );
+  const { layout, videoSize } =
+    useGridLayout(participantCount);
 
-  const { toggleFullscreen } = useFullscreen({
-    autoEnterOnScreenShare: true,
-  });
+  const { toggleFullscreen } =
+    useFullscreen({
+      autoEnterOnScreenShare: true,
+    });
 
   useEffect(() => {
-  const video = localVideoRef.current;
+    const video = localVideoRef.current;
 
-  if (!video) return;
+    if (!video) return;
 
-  if (stream) {
-    video.srcObject = stream;
-  }
+    if (stream) {
+      video.srcObject = stream;
+    }
 
-  return () => {
-    video.pause();
-    video.srcObject = null;
-    video.load();
-  };
-}, [stream]);
+    return () => {
+      video.pause();
+      video.srcObject = null;
+      video.load();
+    };
+  }, [stream]);
 
   const remoteVideosArray = Array.from(
     remoteVideos.entries(),
   );
 
+  const badgeClassName = `
+    absolute
+    right-4
+    bottom-4
+    rounded-xl
+    bg-(--room-webcam-badge)
+    px-7.75
+    py-3.5
+    text-white
+  `;
+
   return (
-    <div className="h-full">
+    <div className="h-full w-full">
       <div
-        ref={gridRef}
+        className="
+          grid
+          h-full
+          w-full
+          justify-center
+          content-center
+        "
         style={{
-          display: "grid",
-          gridTemplateColumns: `repeat(${layout.columns}, 1fr)`,
-          width: "100%",
-          height: "100%",
-          gap: "16px",
+          gridTemplateColumns: `repeat(${layout.columns}, ${videoSize.width}px)`,
+          gridTemplateRows: `repeat(${layout.rows}, ${videoSize.height}px)`,
+          gap: "24px",
         }}
       >
         <div
+          className="
+            relative
+            overflow-hidden
+            rounded-[17px]
+            shadow-lg
+          "
           style={{
             width: videoSize.width,
             height: videoSize.height,
@@ -78,20 +104,33 @@ export default function RoomClient({
             autoPlay
             muted
             playsInline
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-            }}
+            className="
+              h-full
+              w-full
+              object-cover
+            "
           />
 
-          <div>{userName || "You"}</div>
+          <div className={badgeClassName}>
+            <Typography
+              variant="caption"
+              className="text-[18px]"
+            >
+              {userName || "You"}
+            </Typography>
+          </div>
         </div>
 
         {remoteVideosArray.map(
           ([id, remoteStream]) => (
             <div
               key={id}
+              className="
+                relative
+                overflow-hidden
+                rounded-[17px]
+                shadow-lg
+              "
               style={{
                 width: videoSize.width,
                 height: videoSize.height,
@@ -103,23 +142,45 @@ export default function RoomClient({
                 ref={(el) => {
                   if (!el) return;
 
-                  el.srcObject = remoteStream;
+                  el.srcObject =
+                    remoteStream;
 
-                  videoRefs.current.set(id, el);
+                  videoRefs.current.set(
+                    id,
+                    el,
+                  );
                 }}
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                }}
+                className="
+                  h-full
+                  w-full
+                  object-cover
+                "
               />
 
-              <div>
-                {participants.get(id)?.userName ??
-                  `User ${id.slice(0, 5)}`}
+              <div className={badgeClassName}>
+                <Typography
+                  variant="caption"
+                  className="text-[18px]"
+                >
+                  {participants.get(id)
+                    ?.userName ??
+                    `User ${id.slice(0, 5)}`}
+                </Typography>
               </div>
 
               <button
+                className="
+                  absolute
+                  left-4
+                  bottom-4
+                  rounded-xl
+                  bg-(--room-webcam-badge)
+                  px-5
+                  py-3
+                  text-white
+                  transition
+                  hover:opacity-80
+                "
                 onClick={() =>
                   toggleFullscreen(
                     videoRefs.current.get(id)
@@ -128,7 +189,9 @@ export default function RoomClient({
                   )
                 }
               >
-                Fullscreen
+                <Typography variant="caption">
+                  Fullscreen
+                </Typography>
               </button>
             </div>
           ),
