@@ -20,8 +20,9 @@ export function useRoomSession({
 
   const [stream, setStream] = useState<MediaStream | null>(null);
 
-  const [remoteVideos, setRemoteVideos] =
-    useState<Map<string, MediaStream>>(new Map());
+  const [remoteVideos, setRemoteVideos] = useState<
+    Map<string, MediaStream>
+  >(new Map());
 
   const [participants, setParticipants] = useState<
     Map<string, { userName: string }>
@@ -123,7 +124,9 @@ export function useRoomSession({
       });
 
     return () => {
-      localStream?.getTracks().forEach((track) => track.stop());
+      localStream?.getTracks().forEach((track) => {
+        track.stop();
+      });
     };
   }, []);
 
@@ -203,7 +206,9 @@ export function useRoomSession({
     return () => {
       socket.disconnect();
 
-      peersRef.current.forEach((peer) => peer.destroy());
+      peersRef.current.forEach((peer) => {
+        peer.destroy();
+      });
 
       peersRef.current.clear();
       remoteStreamsRef.current.clear();
@@ -236,9 +241,63 @@ export function useRoomSession({
     setIsMicOn(enabled);
   };
 
-  const toggleScreenShare = async () => {
-    console.log("screen share not changed");
-  };
+
+  const disconnect = useCallback(() => {
+    socketRef.current?.removeAllListeners();
+    socketRef.current?.disconnect();
+    socketRef.current = null;
+
+    peersRef.current.forEach((peer) => {
+      try {
+        const pc = (peer as any)._pc;
+
+        pc?.getSenders()?.forEach(
+          (sender: RTCRtpSender) => {
+            sender.track?.stop();
+          },
+        );
+
+        pc?.close();
+
+        peer.destroy();
+      } catch (err) {
+        console.error(err);
+      }
+    });
+
+    peersRef.current.clear();
+
+ stream?.getTracks().forEach((track) => {
+  track.stop();
+});
+
+    screenStreamRef.current?.getTracks().forEach(
+      (track) => {
+        track.stop();
+      },
+    );
+
+    remoteStreamsRef.current.forEach(
+      (remoteStream) => {
+        remoteStream.getTracks().forEach(
+          (track) => {
+            track.stop();
+          },
+        );
+      },
+    );
+
+    remoteStreamsRef.current.clear();
+
+    screenStreamRef.current = null;
+    originalTrackRef.current = null;
+
+    setRemoteVideos(new Map());
+    setParticipants(new Map());
+
+    setStream(null);
+    initializedRef.current = false;
+  }, [stream]);
 
   return {
     stream,
@@ -249,17 +308,6 @@ export function useRoomSession({
     isScreenSharing,
     toggleCamera,
     toggleMic,
-    toggleScreenShare,
-    disconnect: () => {
-      socketRef.current?.disconnect();
-
-      peersRef.current.forEach((peer) => peer.destroy());
-
-      peersRef.current.clear();
-
-      stream?.getTracks().forEach((track) => {
-        track.stop();
-      });
-    },
+    disconnect,
   };
 }

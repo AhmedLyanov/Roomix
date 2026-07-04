@@ -36,10 +36,20 @@ export default function RoomClient({
   });
 
   useEffect(() => {
-    if (!stream || !localVideoRef.current) return;
+  const video = localVideoRef.current;
 
-    localVideoRef.current.srcObject = stream;
-  }, [stream]);
+  if (!video) return;
+
+  if (stream) {
+    video.srcObject = stream;
+  }
+
+  return () => {
+    video.pause();
+    video.srcObject = null;
+    video.load();
+  };
+}, [stream]);
 
   const remoteVideosArray = Array.from(
     remoteVideos.entries(),

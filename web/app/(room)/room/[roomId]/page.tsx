@@ -2,7 +2,7 @@
 
 import { UserButton } from "@clerk/nextjs";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 
 import { RoomControl, ShareLink, useRoomSession } from "@/features";
 import { Button } from "@/shared";
@@ -23,10 +23,13 @@ import {
 
 import { RoomClient } from "@/widgets/room";
 
-export default function RoomPage({ params }: { params: { roomId: string } }) {
+export default function RoomPage() {
   const router = useRouter();
+  const params = useParams();
 
+  const roomId = params.roomId as string;
   const [userName, setUserName] = useState("");
+ 
 
   useEffect(() => {
     const storedName = sessionStorage.getItem("userName");
@@ -35,7 +38,7 @@ export default function RoomPage({ params }: { params: { roomId: string } }) {
   }, []);
 
   const roomSession = useRoomSession({
-    roomId: params.roomId,
+    roomId,
     userName,
   });
 
@@ -45,7 +48,7 @@ export default function RoomPage({ params }: { params: { roomId: string } }) {
 
   const handleLeaveRoom = () => {
     roomSession.disconnect();
-    router.push("/");
+    window.location.replace("/");
   };
 
   if (!userName) {
@@ -154,7 +157,7 @@ export default function RoomPage({ params }: { params: { roomId: string } }) {
 
           <main className="h-full">
             <RoomClient
-              roomId={params.roomId}
+              roomId={roomId}
               roomSession={roomSession}
               userName={userName}
             />
