@@ -21,13 +21,9 @@ import {
   RoomPluginsIcon,
 } from "@/shared/icons/24";
 
-import RoomClient from "@/components/room/RoomClient";
+import { RoomClient } from "@/widgets/room";
 
-export default function RoomPage({
-  params,
-}: {
-  params: { roomId: string };
-}) {
+export default function RoomPage({ params }: { params: { roomId: string } }) {
   const router = useRouter();
 
   const [userName, setUserName] = useState("");
@@ -35,9 +31,7 @@ export default function RoomPage({
   useEffect(() => {
     const storedName = sessionStorage.getItem("userName");
 
-    setUserName(
-      storedName || `User ${Math.floor(Math.random() * 1000)}`,
-    );
+    setUserName(storedName || `User ${Math.floor(Math.random() * 1000)}`);
   }, []);
 
   const roomSession = useRoomSession({
@@ -47,10 +41,7 @@ export default function RoomPage({
 
   const participantCount = 1 + roomSession.remoteVideos.size;
 
-  const roomUrl =
-    typeof window !== "undefined"
-      ? window.location.href
-      : "";
+  const roomUrl = typeof window !== "undefined" ? window.location.href : "";
 
   const handleLeaveRoom = () => {
     roomSession.disconnect();
@@ -68,29 +59,18 @@ export default function RoomPage({
           <ShareLink link={roomUrl} />
 
           <div className="flex items-center gap-4">
-            <Button
-              variant="control"
-              icon={<SettingsIcon />}
-            />
+            <Button variant="control" icon={<SettingsIcon />} />
 
-            <Button
-              variant="control"
-              icon={<QuestionIcon />}
-            />
+            <Button variant="control" icon={<QuestionIcon />} />
 
-            <Button
-              variant="control"
-              icon={<LightningIcon />}
-              badge
-            />
+            <Button variant="control" icon={<LightningIcon />} badge />
 
             <div className="h-[45px] w-[45px]">
               <UserButton
                 appearance={{
                   elements: {
                     avatarBox: "w-[45px] h-[45px]",
-                    userButtonAvatarBox:
-                      "w-[45px] h-[45px]",
+                    userButtonAvatarBox: "w-[45px] h-[45px]",
                     userButtonTrigger:
                       "w-[45px] h-[45px] rounded-full overflow-hidden",
                   },
@@ -188,9 +168,7 @@ export default function RoomPage({
         isScreenSharing={roomSession.isScreenSharing}
         onToggleCamera={roomSession.toggleCamera}
         onToggleMic={roomSession.toggleMic}
-        onToggleScreenShare={
-          roomSession.toggleScreenShare
-        }
+        onToggleScreenShare={roomSession.toggleScreenShare}
         onLeaveRoom={handleLeaveRoom}
       />
     </div>
