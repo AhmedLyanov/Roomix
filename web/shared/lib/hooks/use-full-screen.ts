@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 
 export function useFullscreen(
   { autoEnterOnScreenShare = false } = { autoEnterOnScreenShare: false },

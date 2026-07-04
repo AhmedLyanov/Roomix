@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-
 import { useGridLayout } from "@/shared/lib/grid/grid-layout";
-import { useFullscreen } from "@/shared/lib/hooks/useFullscreen";
+import { useFullscreen } from "@/shared/lib/hooks/use-full-screen";
 import { useRoomSession } from "@/features";
-import { Typography } from "@/shared";
+
+import { LocalVideoCard } from "./local-video/local-video";
+import { RemoteVideoCard } from "./remote-video/remote-video";
 
 interface Props {
   userName: string;
@@ -16,13 +16,6 @@ export default function RoomClient({
   userName,
   roomSession,
 }: Props) {
-  const videoRefs = useRef<Map<string, HTMLVideoElement>>(
-    new Map(),
-  );
-
-  const localVideoRef =
-    useRef<HTMLVideoElement>(null);
-
   const {
     stream,
     remoteVideos,
@@ -40,36 +33,9 @@ export default function RoomClient({
       autoEnterOnScreenShare: true,
     });
 
-  useEffect(() => {
-    const video = localVideoRef.current;
-
-    if (!video) return;
-
-    if (stream) {
-      video.srcObject = stream;
-    }
-
-    return () => {
-      video.pause();
-      video.srcObject = null;
-      video.load();
-    };
-  }, [stream]);
-
   const remoteVideosArray = Array.from(
     remoteVideos.entries(),
   );
-
-  const badgeClassName = `
-    absolute
-    right-4
-    bottom-4
-    rounded-xl
-    bg-(--room-webcam-badge)
-    px-7.75
-    py-3.5
-    text-white
-  `;
 
   return (
     <div className="h-full w-full">
@@ -87,113 +53,34 @@ export default function RoomClient({
           gap: "24px",
         }}
       >
-        <div
-          className="
-            relative
-            overflow-hidden
-            rounded-[17px]
-            shadow-lg
-          "
-          style={{
-            width: videoSize.width,
-            height: videoSize.height,
-          }}
-        >
-          <video
-            ref={localVideoRef}
-            autoPlay
-            muted
-            playsInline
-            className="
-              h-full
-              w-full
-              object-cover
-            "
-          />
-
-          <div className={badgeClassName}>
-            <Typography
-              variant="caption"
-              className="text-[18px]"
-            >
-              {userName || "You"}
-            </Typography>
-          </div>
-        </div>
+        <LocalVideoCard
+          stream={stream}
+          userName={userName}
+          width={videoSize.width}
+          height={videoSize.height}
+        />
 
         {remoteVideosArray.map(
           ([id, remoteStream]) => (
-            <div
+            <RemoteVideoCard
               key={id}
-              className="
-                relative
-                overflow-hidden
-                rounded-[17px]
-                shadow-lg
-              "
-              style={{
-                width: videoSize.width,
-                height: videoSize.height,
-              }}
-            >
-              <video
-                autoPlay
-                playsInline
-                ref={(el) => {
-                  if (!el) return;
-
-                  el.srcObject =
-                    remoteStream;
-
-                  videoRefs.current.set(
-                    id,
-                    el,
-                  );
-                }}
-                className="
-                  h-full
-                  w-full
-                  object-cover
-                "
-              />
-
-              <div className={badgeClassName}>
-                <Typography
-                  variant="caption"
-                  className="text-[18px]"
-                >
-                  {participants.get(id)
-                    ?.userName ??
-                    `User ${id.slice(0, 5)}`}
-                </Typography>
-              </div>
-
-              <button
-                className="
-                  absolute
-                  left-4
-                  bottom-4
-                  rounded-xl
-                  bg-(--room-webcam-badge)
-                  px-5
-                  py-3
-                  text-white
-                  transition
-                  hover:opacity-80
-                "
-                onClick={() =>
-                  toggleFullscreen(
-                    videoRefs.current.get(id)
-                      ?.parentElement || null,
-                    id,
-                  )
-                }
-              >
-                <Typography variant="caption">
-                  Fullscreen
-                </Typography>
-              </button>
-            </div>
+              stream={remoteStream}
+              width={videoSize.width}
+              height={videoSize.height}
+              userName={
+                participants.get(id)
+                  ?.userName ??
+                `User ${id.slice(0, 5)}`
+              }
+              onFullscreen={() =>
+                toggleFullscreen(
+                  document.getElementById(
+                    `video-${id}`,
+                  ),
+                  id,
+                )
+              }
+            />
           ),
         )}
       </div>

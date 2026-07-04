@@ -3,7 +3,7 @@ import clsx from "clsx";
 
 import { Typography } from "../typography/typography";
 
-type ButtonVariant = "ghost" | "primary" | "control";
+type ButtonVariant = "ghost" | "primary" | "control" | "danger";
 
 interface ButtonProps {
   children?: ReactNode;
@@ -45,6 +45,17 @@ export function Button({
         disabled:opacity-50
         `,
 
+        variant === "danger" &&
+          `
+h-16
+w-16
+justify-center
+rounded-[17px]
+
+bg-(--color-close-conference)
+
+hover:opacity-90
+`,
         variant === "ghost" &&
           `
           w-full
@@ -115,11 +126,7 @@ export function Button({
 
       {children && (
         <Typography
-          variant={
-            variant === "primary"
-              ? "navigation"
-              : "body"
-          }
+          variant={variant === "primary" ? "navigation" : "body"}
           className={clsx(
             `
             transition-colors

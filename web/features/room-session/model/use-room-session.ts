@@ -9,10 +9,7 @@ interface UseRoomSessionProps {
   userName: string;
 }
 
-export function useRoomSession({
-  roomId,
-  userName,
-}: UseRoomSessionProps) {
+export function useRoomSession({ roomId, userName }: UseRoomSessionProps) {
   const socketRef = useRef<Socket | null>(null);
   const peersRef = useRef<Map<string, Peer.Instance>>(new Map());
   const remoteStreamsRef = useRef<Map<string, MediaStream>>(new Map());
@@ -20,9 +17,9 @@ export function useRoomSession({
 
   const [stream, setStream] = useState<MediaStream | null>(null);
 
-  const [remoteVideos, setRemoteVideos] = useState<
-    Map<string, MediaStream>
-  >(new Map());
+  const [remoteVideos, setRemoteVideos] = useState<Map<string, MediaStream>>(
+    new Map(),
+  );
 
   const [participants, setParticipants] = useState<
     Map<string, { userName: string }>
@@ -137,8 +134,7 @@ export function useRoomSession({
     initializedRef.current = true;
 
     const socket = io(
-      process.env.NEXT_PUBLIC_SIGNALING_URL ||
-        "http://localhost:5000",
+      process.env.NEXT_PUBLIC_SIGNALING_URL || "http://localhost:5000",
       {
         path: "/ws",
         transports: ["websocket"],
@@ -241,7 +237,6 @@ export function useRoomSession({
     setIsMicOn(enabled);
   };
 
-
   const disconnect = useCallback(() => {
     socketRef.current?.removeAllListeners();
     socketRef.current?.disconnect();
@@ -251,11 +246,9 @@ export function useRoomSession({
       try {
         const pc = (peer as any)._pc;
 
-        pc?.getSenders()?.forEach(
-          (sender: RTCRtpSender) => {
-            sender.track?.stop();
-          },
-        );
+        pc?.getSenders()?.forEach((sender: RTCRtpSender) => {
+          sender.track?.stop();
+        });
 
         pc?.close();
 
@@ -267,25 +260,19 @@ export function useRoomSession({
 
     peersRef.current.clear();
 
- stream?.getTracks().forEach((track) => {
-  track.stop();
-});
+    stream?.getTracks().forEach((track) => {
+      track.stop();
+    });
 
-    screenStreamRef.current?.getTracks().forEach(
-      (track) => {
+    screenStreamRef.current?.getTracks().forEach((track) => {
+      track.stop();
+    });
+
+    remoteStreamsRef.current.forEach((remoteStream) => {
+      remoteStream.getTracks().forEach((track) => {
         track.stop();
-      },
-    );
-
-    remoteStreamsRef.current.forEach(
-      (remoteStream) => {
-        remoteStream.getTracks().forEach(
-          (track) => {
-            track.stop();
-          },
-        );
-      },
-    );
+      });
+    });
 
     remoteStreamsRef.current.clear();
 

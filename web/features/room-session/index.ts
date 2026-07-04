@@ -1,1 +1,1 @@
-export { useRoomSession } from "./model/useRoomSession";
+export { useRoomSession } from "./model/use-room-session";
