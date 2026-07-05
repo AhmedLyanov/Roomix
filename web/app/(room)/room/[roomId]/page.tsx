@@ -3,8 +3,14 @@
 import { UserButton } from "@clerk/nextjs";
 import { useState } from "react";
 import { useParams } from "next/navigation";
-import { useRoomLayoutStore } from "@/shared/model/room-client.store";
-import { RoomControl, ShareLink, useRoomSession } from "@/features";
+
+import {
+  RoomControl,
+  ShareLink,
+  useRoomSession,
+  RoomLayoutSwitcher,
+} from "@/features";
+
 import { Button } from "@/shared";
 
 import {
@@ -12,9 +18,6 @@ import {
   QuestionIcon,
   LightningIcon,
   NextIcon,
-  MeetVariantOneIcon,
-  MeetVariantTwoIcon,
-  MeetVariantThreeIcon,
   ParticipantsIcon,
   ChatIcon,
   MagicIcon,
@@ -25,8 +28,9 @@ import { RoomClient } from "@/widgets/room";
 
 export default function RoomPage() {
   const params = useParams();
-  const { layoutMode, setLayoutMode } = useRoomLayoutStore();
+
   const roomId = params.roomId as string;
+
   const [userName] = useState(() => {
     if (typeof window === "undefined") {
       return "";
@@ -104,37 +108,7 @@ export default function RoomPage() {
 
       <div className="relative flex-1 overflow-hidden">
         <div className="relative h-full px-31 py-10.75">
-          <div className="absolute top-3.75 right-3.5 flex items-center gap-2">
-            <button
-              onClick={() => setLayoutMode("cinema")}
-              className={`
-      transition-all duration-200
-      ${layoutMode === "cinema" ? "text-white" : "text-(--room-layout-type)"}
-    `}
-            >
-              <MeetVariantOneIcon />
-            </button>
-
-            <button
-              onClick={() => setLayoutMode("focus")}
-              className={`
-      transition-all duration-200
-      ${layoutMode === "focus" ? "text-white" : "text-(--room-layout-type)"}
-    `}
-            >
-              <MeetVariantTwoIcon />
-            </button>
-
-            <button
-              onClick={() => setLayoutMode("grid")}
-              className={`
-      transition-all duration-200
-      ${layoutMode === "grid" ? "text-white" : "text-(--room-layout-type)"}
-    `}
-            >
-              <MeetVariantThreeIcon />
-            </button>
-          </div>
+          <RoomLayoutSwitcher />
 
           <div
             className="
@@ -142,15 +116,15 @@ export default function RoomPage() {
               top-22.5
               right-0
               z-20
-              px-3.5
-              py-5.75
               flex
-              gap-7
               flex-col
               items-center
               justify-between
+              gap-7
               rounded-l-[20px]
               bg-(--room-navigation-bg)
+              px-3.5
+              py-5.75
             "
           >
             <button className="flex items-center gap-px text-(--color-gray-light)">
@@ -175,12 +149,7 @@ export default function RoomPage() {
           </div>
 
           <main className="h-full">
-            <RoomClient
-              roomId={roomId}
-              layoutMode={layoutMode}
-              roomSession={roomSession}
-              userName={userName}
-            />
+            <RoomClient roomSession={roomSession} userName={userName} />
           </main>
         </div>
       </div>

@@ -1,9 +1,8 @@
 "use client";
 
-import {
-  useGridLayout,
-  type RoomLayoutMode,
-} from "@/shared/lib/grid/grid-layout";
+import { useGridLayout } from "@/shared/lib/grid/grid-layout";
+
+import { useRoomLayoutStore } from "@/shared/model/room-client.store";
 
 import { useFullscreen } from "@/shared/lib/hooks/use-full-screen";
 import { useRoomSession } from "@/features";
@@ -13,16 +12,13 @@ import { RemoteVideoCard } from "./remote-video/remote-video";
 
 interface Props {
   userName: string;
-  layoutMode: RoomLayoutMode;
   roomSession: ReturnType<typeof useRoomSession>;
 }
 
-export default function RoomClient({
-  userName,
-  roomSession,
-  layoutMode,
-}: Props) {
+export default function RoomClient({ userName, roomSession }: Props) {
   const { stream, remoteVideos, participants } = roomSession;
+
+  const { layoutMode } = useRoomLayoutStore();
 
   const participantCount = 1 + remoteVideos.size;
 
@@ -50,7 +46,9 @@ export default function RoomClient({
           "
           style={{
             gridTemplateColumns: `repeat(${grid.columns}, ${mainVideo.width}px)`,
+
             gridTemplateRows: `repeat(${grid.rows}, ${mainVideo.height}px)`,
+
             gap: "24px",
           }}
         >
@@ -82,8 +80,8 @@ export default function RoomClient({
 
   if (mode === "focus") {
     return (
-      <div className="flex h-full gap-5 justify-center">
-        <div className="">
+      <div className="flex h-full justify-center gap-5">
+        <div>
           <LocalVideoCard
             stream={stream}
             userName={userName}
@@ -92,14 +90,7 @@ export default function RoomClient({
           />
         </div>
 
-        <div
-          className="
-            flex
-            flex-col
-            gap-4
-            overflow-y-auto
-          "
-        >
+        <div className="flex flex-col gap-4 overflow-y-auto">
           {remoteVideosArray.map(([id, remoteStream]) => (
             <RemoteVideoCard
               key={id}
@@ -120,14 +111,7 @@ export default function RoomClient({
   }
 
   return (
-    <div
-      className="
-        flex
-        h-full
-        items-center
-        justify-center
-      "
-    >
+    <div className="flex h-full items-center justify-center">
       <LocalVideoCard
         stream={stream}
         userName={userName}
