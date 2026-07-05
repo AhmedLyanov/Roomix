@@ -3,7 +3,6 @@
 import { useGridLayout } from "@/shared/lib/grid/grid-layout";
 import { useFullscreen } from "@/shared/lib/hooks/use-full-screen";
 import { useRoomSession } from "@/features";
-
 import { LocalVideoCard } from "./local-video/local-video";
 import { RemoteVideoCard } from "./remote-video/remote-video";
 
@@ -12,30 +11,18 @@ interface Props {
   roomSession: ReturnType<typeof useRoomSession>;
 }
 
-export default function RoomClient({
-  userName,
-  roomSession,
-}: Props) {
-  const {
-    stream,
-    remoteVideos,
-    participants,
-  } = roomSession;
+export default function RoomClient({ userName, roomSession }: Props) {
+  const { stream, remoteVideos, participants } = roomSession;
 
-  const participantCount =
-    1 + remoteVideos.size;
+  const participantCount = 1 + remoteVideos.size;
 
-  const { layout, videoSize } =
-    useGridLayout(participantCount);
+  const { layout, videoSize } = useGridLayout(participantCount);
 
-  const { toggleFullscreen } =
-    useFullscreen({
-      autoEnterOnScreenShare: true,
-    });
+  const { toggleFullscreen } = useFullscreen({
+    autoEnterOnScreenShare: true,
+  });
 
-  const remoteVideosArray = Array.from(
-    remoteVideos.entries(),
-  );
+  const remoteVideosArray = Array.from(remoteVideos.entries());
 
   return (
     <div className="h-full w-full">
@@ -60,29 +47,20 @@ export default function RoomClient({
           height={videoSize.height}
         />
 
-        {remoteVideosArray.map(
-          ([id, remoteStream]) => (
-            <RemoteVideoCard
-              key={id}
-              stream={remoteStream}
-              width={videoSize.width}
-              height={videoSize.height}
-              userName={
-                participants.get(id)
-                  ?.userName ??
-                `User ${id.slice(0, 5)}`
-              }
-              onFullscreen={() =>
-                toggleFullscreen(
-                  document.getElementById(
-                    `video-${id}`,
-                  ),
-                  id,
-                )
-              }
-            />
-          ),
-        )}
+        {remoteVideosArray.map(([id, remoteStream]) => (
+          <RemoteVideoCard
+            key={id}
+            stream={remoteStream}
+            width={videoSize.width}
+            height={videoSize.height}
+            userName={
+              participants.get(id)?.userName ?? `User ${id.slice(0, 5)}`
+            }
+            onFullscreen={() =>
+              toggleFullscreen(document.getElementById(`video-${id}`), id)
+            }
+          />
+        ))}
       </div>
     </div>
   );

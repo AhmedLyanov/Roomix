@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-
+import { FullScreenIcon } from "@/shared/icons/24";
 import { Typography } from "@/shared";
 
 interface Props {
@@ -9,17 +9,11 @@ interface Props {
   userName: string;
   width: number;
   height: number;
-  onFullscreen: () => void;
 }
 
-export function RemoteVideoCard({
-  stream,
-  userName,
-  width,
-  height,
-  onFullscreen,
-}: Props) {
+export function RemoteVideoCard({ stream, userName, width, height }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!videoRef.current) return;
@@ -27,8 +21,19 @@ export function RemoteVideoCard({
     videoRef.current.srcObject = stream;
   }, [stream]);
 
+  const handleFullscreen = async () => {
+    if (!containerRef.current) return;
+
+    if (document.fullscreenElement) {
+      await document.exitFullscreen();
+    } else {
+      await containerRef.current.requestFullscreen();
+    }
+  };
+
   return (
     <div
+      ref={containerRef}
       className="
         relative
         overflow-hidden
@@ -62,10 +67,7 @@ export function RemoteVideoCard({
           py-3.5
         "
       >
-        <Typography
-          variant="caption"
-          className="text-[18px]"
-        >
+        <Typography variant="caption" className="text-[18px]">
           {userName}
         </Typography>
       </div>
@@ -77,16 +79,13 @@ export function RemoteVideoCard({
           bottom-4
           rounded-xl
           bg-(--room-webcam-badge)
-          px-5
-          py-3
+          p-2
           transition
           hover:opacity-80
         "
-        onClick={onFullscreen}
+        onClick={handleFullscreen}
       >
-        <Typography variant="caption">
-          Fullscreen
-        </Typography>
+        <FullScreenIcon />
       </button>
     </div>
   );

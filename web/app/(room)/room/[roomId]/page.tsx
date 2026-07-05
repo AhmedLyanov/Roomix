@@ -2,7 +2,7 @@
 
 import { UserButton } from "@clerk/nextjs";
 import { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
 
 import { RoomControl, ShareLink, useRoomSession } from "@/features";
 import { Button } from "@/shared";
@@ -24,18 +24,19 @@ import {
 import { RoomClient } from "@/widgets/room";
 
 export default function RoomPage() {
-  const router = useRouter();
   const params = useParams();
 
   const roomId = params.roomId as string;
-  const [userName, setUserName] = useState("");
- 
+  const [userName] = useState(() => {
+    if (typeof window === "undefined") {
+      return "";
+    }
 
-  useEffect(() => {
-    const storedName = sessionStorage.getItem("userName");
-
-    setUserName(storedName || `User ${Math.floor(Math.random() * 1000)}`);
-  }, []);
+    return (
+      sessionStorage.getItem("userName") ??
+      `User ${Math.floor(Math.random() * 1000)}`
+    );
+  });
 
   const roomSession = useRoomSession({
     roomId,

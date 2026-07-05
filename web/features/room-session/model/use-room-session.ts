@@ -71,12 +71,16 @@ export function useRoomSession({ roomId, userName }: UseRoomSessionProps) {
       peer.on("signal", (data) => {
         if (!socketRef.current) return;
 
-        if ((data as any).type === "offer") {
+        const signalData = data as {
+          type?: string;
+        };
+
+        if (signalData.type === "offer") {
           socketRef.current.emit("offer", {
             offer: data,
             to: socketId,
           });
-        } else if ((data as any).type === "answer") {
+        } else if (signalData.type === "answer") {
           socketRef.current.emit("answer", {
             answer: data,
             to: socketId,
@@ -244,7 +248,11 @@ export function useRoomSession({ roomId, userName }: UseRoomSessionProps) {
 
     peersRef.current.forEach((peer) => {
       try {
-        const pc = (peer as any)._pc;
+        const pc = (
+          peer as Peer.Instance & {
+            _pc?: RTCPeerConnection;
+          }
+        )._pc;
 
         pc?.getSenders()?.forEach((sender: RTCRtpSender) => {
           sender.track?.stop();
