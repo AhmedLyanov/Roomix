@@ -3,7 +3,7 @@
 import { UserButton } from "@clerk/nextjs";
 import { useState } from "react";
 import { useParams } from "next/navigation";
-import type { RoomLayoutMode } from "@/shared/lib/grid/grid-layout";
+import { useRoomLayoutStore } from "@/shared/model/room-client.store";
 import { RoomControl, ShareLink, useRoomSession } from "@/features";
 import { Button } from "@/shared";
 
@@ -25,8 +25,7 @@ import { RoomClient } from "@/widgets/room";
 
 export default function RoomPage() {
   const params = useParams();
-  const [layoutMode, setLayoutMode] = useState<RoomLayoutMode>("grid");
-
+  const { layoutMode, setLayoutMode } = useRoomLayoutStore();
   const roomId = params.roomId as string;
   const [userName] = useState(() => {
     if (typeof window === "undefined") {

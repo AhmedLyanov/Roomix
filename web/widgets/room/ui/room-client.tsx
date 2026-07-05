@@ -37,10 +37,6 @@ export default function RoomClient({
 
   const remoteVideosArray = Array.from(remoteVideos.entries());
 
-  /*
-   * GRID MODE
-   */
-
   if (mode === "grid") {
     return (
       <div className="h-full w-full">
@@ -84,14 +80,10 @@ export default function RoomClient({
     );
   }
 
-  /*
-   * FOCUS MODE
-   */
-
   if (mode === "focus") {
     return (
-      <div className="flex h-full justify-center">
-        <div className="flex-1">
+      <div className="flex h-full gap-5 justify-center">
+        <div className="">
           <LocalVideoCard
             stream={stream}
             userName={userName}
@@ -126,10 +118,6 @@ export default function RoomClient({
       </div>
     );
   }
-
-  /*
-   * CINEMA MODE
-   */
 
   return (
     <div
