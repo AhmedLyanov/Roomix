@@ -107,33 +107,30 @@ export default function RoomPage() {
           <div className="absolute top-3.75 right-3.5 flex items-center gap-2">
             <button
               onClick={() => setLayoutMode("cinema")}
-              className={
-                layoutMode === "cinema"
-                  ? "opacity-100"
-                  : "opacity-50 hover:opacity-100"
-              }
+              className={`
+      transition-all duration-200
+      ${layoutMode === "cinema" ? "text-white" : "text-(--room-layout-type)"}
+    `}
             >
               <MeetVariantOneIcon />
             </button>
 
             <button
               onClick={() => setLayoutMode("focus")}
-              className={
-                layoutMode === "focus"
-                  ? "opacity-100"
-                  : "opacity-50 hover:opacity-100"
-              }
+              className={`
+      transition-all duration-200
+      ${layoutMode === "focus" ? "text-white" : "text-(--room-layout-type)"}
+    `}
             >
               <MeetVariantTwoIcon />
             </button>
 
             <button
               onClick={() => setLayoutMode("grid")}
-              className={
-                layoutMode === "grid"
-                  ? "opacity-100"
-                  : "opacity-50 hover:opacity-100"
-              }
+              className={`
+      transition-all duration-200
+      ${layoutMode === "grid" ? "text-white" : "text-(--room-layout-type)"}
+    `}
             >
               <MeetVariantThreeIcon />
             </button>
