@@ -1,9 +1,9 @@
 "use client";
 
 import { UserButton } from "@clerk/nextjs";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams } from "next/navigation";
-
+import type { RoomLayoutMode } from "@/shared/lib/grid/grid-layout";
 import { RoomControl, ShareLink, useRoomSession } from "@/features";
 import { Button } from "@/shared";
 
@@ -25,6 +25,7 @@ import { RoomClient } from "@/widgets/room";
 
 export default function RoomPage() {
   const params = useParams();
+  const [layoutMode, setLayoutMode] = useState<RoomLayoutMode>("grid");
 
   const roomId = params.roomId as string;
   const [userName] = useState(() => {
@@ -105,15 +106,36 @@ export default function RoomPage() {
       <div className="relative flex-1 overflow-hidden">
         <div className="relative h-full px-31 py-10.75">
           <div className="absolute top-3.75 right-3.5 flex items-center gap-2">
-            <button className="opacity-50 transition-opacity hover:opacity-100">
+            <button
+              onClick={() => setLayoutMode("cinema")}
+              className={
+                layoutMode === "cinema"
+                  ? "opacity-100"
+                  : "opacity-50 hover:opacity-100"
+              }
+            >
               <MeetVariantOneIcon />
             </button>
 
-            <button className="opacity-50 transition-opacity hover:opacity-100">
+            <button
+              onClick={() => setLayoutMode("focus")}
+              className={
+                layoutMode === "focus"
+                  ? "opacity-100"
+                  : "opacity-50 hover:opacity-100"
+              }
+            >
               <MeetVariantTwoIcon />
             </button>
 
-            <button>
+            <button
+              onClick={() => setLayoutMode("grid")}
+              className={
+                layoutMode === "grid"
+                  ? "opacity-100"
+                  : "opacity-50 hover:opacity-100"
+              }
+            >
               <MeetVariantThreeIcon />
             </button>
           </div>
@@ -159,6 +181,7 @@ export default function RoomPage() {
           <main className="h-full">
             <RoomClient
               roomId={roomId}
+              layoutMode={layoutMode}
               roomSession={roomSession}
               userName={userName}
             />
