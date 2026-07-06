@@ -1,7 +1,6 @@
 "use client";
 
-import { UserButton } from "@clerk/nextjs";
-import { useState } from "react";
+import { UserButton, useUser } from "@clerk/nextjs";
 import { useParams } from "next/navigation";
 
 import {
@@ -31,21 +30,23 @@ export default function RoomPage() {
 
   const roomId = params.roomId as string;
 
-  const [userName] = useState(() => {
-    if (typeof window === "undefined") {
-      return "";
-    }
+  const { user, isLoaded } = useUser();
 
-    return (
-      sessionStorage.getItem("userName") ??
-      `User ${Math.floor(Math.random() * 1000)}`
-    );
-  });
+  const userName =
+    user?.fullName ??
+    user?.username ??
+    user?.firstName ??
+    user?.primaryEmailAddress?.emailAddress ??
+    "Anonymous";
 
   const roomSession = useRoomSession({
     roomId,
     userName,
   });
+
+  if (!isLoaded) {
+    return null;
+  }
 
   const participantCount = 1 + roomSession.remoteVideos.size;
 
@@ -55,10 +56,6 @@ export default function RoomPage() {
     roomSession.disconnect();
     window.location.replace("/");
   };
-
-  if (!userName) {
-    return null;
-  }
 
   return (
     <div className="flex h-screen flex-col bg-(--color-background)">
@@ -73,12 +70,14 @@ export default function RoomPage() {
 
             <Button variant="control" icon={<LightningIcon />} badge />
 
-            <div className="h-[45px] w-[45px]">
+            <div className="h-11.25 w-11.25">
               <UserButton
                 appearance={{
                   elements: {
                     avatarBox: "w-[45px] h-[45px]",
+
                     userButtonAvatarBox: "w-[45px] h-[45px]",
+
                     userButtonTrigger:
                       "w-[45px] h-[45px] rounded-full overflow-hidden",
                   },
@@ -95,7 +94,7 @@ export default function RoomPage() {
             bottom-0
             z-10
             flex
-            w-[63px]
+            w-15.75
             translate-y-1/2
             items-center
             justify-center
