@@ -1,0 +1,89 @@
+import Session from "../models/Session.model.js";
+
+export async function createSession({ roomId, ownerId, ownerName }) {
+  return await Session.findOneAndUpdate(
+    {
+      roomId,
+      endedAt: { $exists: false },
+    },
+    {
+      $setOnInsert: {
+        roomId,
+        ownerId,
+        ownerName,
+        startedAt: new Date(),
+        participants: [
+          {
+            userId: ownerId,
+            userName: ownerName,
+            joinedAt: new Date(),
+          },
+        ],
+      },
+    },
+    {
+      upsert: true,
+      new: true,
+      setDefaultsOnInsert: true,
+    },
+  );
+}
+
+export async function joinParticipant({ roomId, userId, userName }) {
+  const session = await Session.findOne({
+    roomId,
+    endedAt: { $exists: false },
+  });
+
+  if (!session) return;
+
+  const exists = session.participants.some(
+    (participant) => participant.userId === userId,
+  );
+
+  if (exists) return;
+
+  session.participants.push({
+    userId,
+    userName,
+    joinedAt: new Date(),
+  });
+
+  await session.save();
+}
+
+export async function leaveParticipant({ roomId, userId }) {
+  const session = await Session.findOne({
+    roomId,
+    endedAt: { $exists: false },
+  });
+
+  if (!session) return;
+
+  const participant = session.participants.find(
+    (participant) => participant.userId === userId,
+  );
+
+  if (!participant) return;
+
+  participant.leftAt = new Date();
+
+  await session.save();
+}
+
+export async function finishSession(roomId) {
+  const session = await Session.findOne({
+    roomId,
+    endedAt: { $exists: false },
+  });
+
+  if (!session) return;
+
+  session.endedAt = new Date();
+
+  session.duration = Math.floor(
+    (session.endedAt.getTime() - session.startedAt.getTime()) / 1000,
+  );
+
+  await session.save();
+}

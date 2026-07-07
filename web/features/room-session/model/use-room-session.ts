@@ -6,10 +6,15 @@ import Peer from "simple-peer";
 
 interface UseRoomSessionProps {
   roomId: string;
-  userName: string;
+  userId?: string;
+  userName?: string;
 }
 
-export function useRoomSession({ roomId, userName }: UseRoomSessionProps) {
+export function useRoomSession({
+  roomId,
+  userId,
+  userName,
+}: UseRoomSessionProps) {
   const socketRef = useRef<Socket | null>(null);
   const peersRef = useRef<Map<string, Peer.Instance>>(new Map());
   const remoteStreamsRef = useRef<Map<string, MediaStream>>(new Map());
@@ -132,7 +137,9 @@ export function useRoomSession({ roomId, userName }: UseRoomSessionProps) {
   }, []);
 
   useEffect(() => {
-    if (!stream || !userName) return;
+    if (!stream || !userId || !userName) {
+      return;
+    }
 
     if (initializedRef.current) return;
     initializedRef.current = true;
@@ -150,7 +157,7 @@ export function useRoomSession({ roomId, userName }: UseRoomSessionProps) {
     socket.on("connect", () => {
       socket.emit("join-room", {
         roomId,
-        userId: socket.id,
+        userId,
         userName,
       });
     });
@@ -215,7 +222,7 @@ export function useRoomSession({ roomId, userName }: UseRoomSessionProps) {
 
       initializedRef.current = false;
     };
-  }, [roomId, userName, stream, createPeer, removePeer]);
+  }, [roomId, userId, userName, stream, createPeer, removePeer]);
 
   const toggleCamera = () => {
     if (!stream) return;

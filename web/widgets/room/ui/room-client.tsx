@@ -11,7 +11,7 @@ import { LocalVideoCard } from "./local-video/local-video";
 import { RemoteVideoCard } from "./remote-video/remote-video";
 
 interface Props {
-  userName: string;
+  userName?: string;
   roomSession: ReturnType<typeof useRoomSession>;
 }
 

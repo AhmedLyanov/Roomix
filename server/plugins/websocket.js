@@ -1,7 +1,14 @@
 import fp from "fastify-plugin";
 import { Server } from "socket.io";
 
-export default fp(async function (fastify, opts) {
+import {
+  createSession,
+  joinParticipant,
+  leaveParticipant,
+  finishSession,
+} from "../services/session.service.js";
+
+export default fp(async function (fastify) {
   const rooms = new Map();
   const users = new Map();
 
@@ -14,7 +21,7 @@ export default fp(async function (fastify, opts) {
   });
 
   io.on("connection", (socket) => {
-    socket.on("join-room", ({ roomId, userId, userName }) => {
+    socket.on("join-room", async ({ roomId, userId, userName }) => {
       socket.join(roomId);
 
       if (!rooms.has(roomId)) {
@@ -22,8 +29,26 @@ export default fp(async function (fastify, opts) {
       }
 
       const room = rooms.get(roomId);
+
       room.add(socket.id);
-      users.set(socket.id, { userId, userName, roomId });
+
+      users.set(socket.id, {
+        userId,
+        userName,
+        roomId,
+      });
+
+      await createSession({
+        roomId,
+        ownerId: userId,
+        ownerName: userName,
+      });
+
+      await joinParticipant({
+        roomId,
+        userId,
+        userName,
+      });
 
       const existingUsers = Array.from(room)
         .filter((id) => id !== socket.id)
@@ -33,7 +58,9 @@ export default fp(async function (fastify, opts) {
         }));
 
       if (existingUsers.length > 0) {
-        socket.emit("existing-users", { users: existingUsers });
+        socket.emit("existing-users", {
+          users: existingUsers,
+        });
       }
 
       socket.to(roomId).emit("user-connected", {
@@ -64,15 +91,28 @@ export default fp(async function (fastify, opts) {
       });
     });
 
-    socket.on("disconnect", () => {
+    socket.on("disconnect", async () => {
       const user = users.get(socket.id);
+
       if (!user) return;
 
-      const { roomId } = user;
+      const { roomId, userId } = user;
+
+      await leaveParticipant({
+        roomId,
+        userId,
+      });
 
       if (rooms.has(roomId)) {
         const room = rooms.get(roomId);
+
         room.delete(socket.id);
+
+        if (room.size === 0) {
+          await finishSession(roomId);
+
+          rooms.delete(roomId);
+        }
 
         socket.to(roomId).emit("user-disconnected", {
           socketId: socket.id,

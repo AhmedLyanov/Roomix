@@ -5,17 +5,12 @@ import { Typography } from "@/shared";
 
 interface Props {
   stream: MediaStream | null;
-  userName: string;
+  userName?: string;
   width: number;
   height: number;
 }
 
-export function LocalVideoCard({
-  stream,
-  userName,
-  width,
-  height,
-}: Props) {
+export function LocalVideoCard({ stream, userName, width, height }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -70,11 +65,8 @@ export function LocalVideoCard({
           py-3.5
         "
       >
-        <Typography
-          variant="caption"
-          className="text-[18px]"
-        >
-          {userName}
+        <Typography variant="caption" className="text-[18px]">
+          {userName ?? "Anonymous"}
         </Typography>
       </div>
     </div>

@@ -32,19 +32,22 @@ export default function RoomPage() {
 
   const { user, isLoaded } = useUser();
 
-  const userName =
-    user?.fullName ??
-    user?.username ??
-    user?.firstName ??
-    user?.primaryEmailAddress?.emailAddress ??
-    "Anonymous";
+  const userId = isLoaded ? user?.id : undefined;
+
+  const userName = isLoaded
+    ? (user?.fullName ??
+      user?.username ??
+      user?.firstName ??
+      user?.primaryEmailAddress?.emailAddress)
+    : undefined;
 
   const roomSession = useRoomSession({
     roomId,
+    userId,
     userName,
   });
 
-  if (!isLoaded) {
+  if (!isLoaded || !user) {
     return null;
   }
 
@@ -75,9 +78,7 @@ export default function RoomPage() {
                 appearance={{
                   elements: {
                     avatarBox: "w-[45px] h-[45px]",
-
                     userButtonAvatarBox: "w-[45px] h-[45px]",
-
                     userButtonTrigger:
                       "w-[45px] h-[45px] rounded-full overflow-hidden",
                   },
