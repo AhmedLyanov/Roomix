@@ -4,6 +4,7 @@ import { apercu, lato } from "@/public/fonts";
 
 import { ThemeProvider } from "@/app/providers/theme/theme-provider";
 import { QueryProvider } from "@/shared/provider/query-provider";
+import { AntdProvider } from "./providers/antd/antd-provider";
 import { AppClerkProvider } from "@/app/providers/clerk/clerk-provider";
 
 import "./globals.css";
@@ -80,7 +81,9 @@ export default function RootLayout({
       <body className="h-full">
         <ThemeProvider attribute="class" enableSystem>
           <QueryProvider>
-            <AppClerkProvider>{children}</AppClerkProvider>
+            <AppClerkProvider>
+              <AntdProvider>{children}</AntdProvider>
+            </AppClerkProvider>
           </QueryProvider>
         </ThemeProvider>
       </body>

@@ -1,6 +1,6 @@
 import { useSessions, useDeleteSession } from "@/entities/session";
 
-import { Typography } from "@/shared";
+import { Typography, Spinner } from "@/shared";
 import { ActionDeleteIcon, ActionPlayIcon } from "@/shared/icons/24";
 
 interface Props {
@@ -12,7 +12,11 @@ export function SessionHistoryTable({ userId }: Props) {
   const deleteMutation = useDeleteSession(userId);
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex h-72 items-center justify-center">
+        <Spinner />
+      </div>
+    );
   }
 
   if (sessions.length === 0) {
