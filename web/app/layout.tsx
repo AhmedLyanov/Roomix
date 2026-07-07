@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { apercu, lato } from "@/public/fonts";
 
 import { ThemeProvider } from "@/app/providers/theme/theme-provider";
+import { QueryProvider } from "@/shared/provider/query-provider";
 import { AppClerkProvider } from "@/app/providers/clerk/clerk-provider";
 
 import "./globals.css";
@@ -78,9 +79,9 @@ export default function RootLayout({
     >
       <body className="h-full">
         <ThemeProvider attribute="class" enableSystem>
-          <AppClerkProvider>
-            {children}
-          </AppClerkProvider>
+          <QueryProvider>
+            <AppClerkProvider>{children}</AppClerkProvider>
+          </QueryProvider>
         </ThemeProvider>
       </body>
     </html>

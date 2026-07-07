@@ -87,3 +87,15 @@ export async function finishSession(roomId) {
 
   await session.save();
 }
+
+export async function getSessions(userId) {
+  return Session.find({
+    ownerId: userId,
+  }).sort({
+    startedAt: -1,
+  });
+}
+
+export async function deleteSession(sessionId) {
+  return Session.findByIdAndDelete(sessionId);
+}

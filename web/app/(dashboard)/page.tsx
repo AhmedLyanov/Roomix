@@ -3,18 +3,20 @@
 import { useRouter } from "next/navigation";
 
 import { Typography } from "@/shared";
-import {
-  MeetingIcon,
-  LessonIcon,
-  BroadcastIcon,
-} from "@/shared/icons/24";
+import { MeetingIcon, LessonIcon, BroadcastIcon } from "@/shared/icons/24";
+
+import { useUser } from "@clerk/nextjs";
 
 import { SessionModeCard } from "@/features/create-lesson";
 import { SessionHistory } from "@/widgets/session-history";
 
 export default function Home() {
   const router = useRouter();
+  const { user, isLoaded } = useUser();
 
+  if (!isLoaded || !user) {
+    return null;
+  }
   const handleCreateMeeting = () => {
     const id =
       typeof crypto !== "undefined" && crypto.randomUUID
@@ -36,9 +38,7 @@ export default function Home() {
   return (
     <section className="w-full px-9.25">
       <div className="mt-25 w-full px-9.5">
-        <Typography variant="h1">
-          Cyber modes
-        </Typography>
+        <Typography variant="h1">Cyber modes</Typography>
 
         <div className="mt-14.25">
           <div className="mt-14 grid grid-cols-3 gap-5">
@@ -48,21 +48,15 @@ export default function Home() {
               onClick={handleCreateMeeting}
             />
 
-            <SessionModeCard
-              icon={<LessonIcon />}
-              title="Active lesson"
-            />
+            <SessionModeCard icon={<LessonIcon />} title="Active lesson" />
 
-            <SessionModeCard
-              icon={<BroadcastIcon />}
-              title="Broadcast"
-            />
+            <SessionModeCard icon={<BroadcastIcon />} title="Broadcast" />
           </div>
         </div>
       </div>
 
       <div className="mt-15.75">
-        <SessionHistory />
+        <SessionHistory userId={user.id} />
       </div>
     </section>
   );

@@ -1,30 +1,30 @@
-const sessions = [
-  {
-    id: 1,
-    name: "Session 12",
-    date: "25.01.2022",
-    time: "10:26 PM",
-    duration: "1:32:56",
-  },
-  {
-    id: 2,
-    name: "Session 11",
-    date: "24.01.2022",
-    time: "10:15 PM",
-    duration: "0:32:56",
-  },
-  {
-    id: 3,
-    name: "Session 10",
-    date: "18.01.2022",
-    time: "10:26 PM",
-    duration: "2:32:56",
-  },
-];
-import { Typography } from "@/shared";
-import { ActionPlayIcon, ActionDeleteIcon } from "@/shared/icons/24";
+import { useSessions, useDeleteSession } from "@/entities/session";
 
-export function SessionHistoryTable() {
+import { Typography } from "@/shared";
+import { ActionDeleteIcon, ActionPlayIcon } from "@/shared/icons/24";
+
+interface Props {
+  userId: string;
+}
+
+export function SessionHistoryTable({ userId }: Props) {
+  const { data: sessions = [], isLoading } = useSessions(userId);
+  const deleteMutation = useDeleteSession(userId);
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (sessions.length === 0) {
+    return (
+      <div className="flex h-72 items-center justify-center">
+        <Typography variant="body" className="text-(--table-meta-text)">
+          {"You don't have any session history yet."}
+        </Typography>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full">
       <div className="grid grid-cols-[36%_36%_18%_10%] rounded-lg bg-(--table-meta-bg) px-9.5 py-4">
@@ -46,9 +46,9 @@ export function SessionHistoryTable() {
       </div>
 
       <div className="flex flex-col">
-        {sessions.map((session) => (
+        {sessions.map((session, index) => (
           <div
-            key={session.id}
+            key={session._id}
             className="
               grid
               grid-cols-[36%_36%_18%_10%]
@@ -59,36 +59,33 @@ export function SessionHistoryTable() {
             "
           >
             <Typography className="text-(--table-meta-data)">
-              {session.name}
+              Session #{sessions.length - index}
             </Typography>
 
             <div className="flex items-center gap-2">
               <Typography className="text-(--table-meta-data)">
-                {session.date}
+                {new Date(session.startedAt).toLocaleDateString()}
               </Typography>
 
-              <Typography className="text-(--table-meta-data)">/</Typography>
+              <Typography>/</Typography>
 
               <Typography className="text-(--table-meta-text)">
-                {session.time}
+                {new Date(session.startedAt).toLocaleTimeString()}
               </Typography>
             </div>
 
             <Typography className="text-(--table-meta-text)">
-              {session.duration}
+              {session.duration}s
             </Typography>
 
             <div className="flex items-center gap-6">
-              <button
-                className="transition-opacity hover:opacity-70"
-                aria-label="Play session"
-              >
+              <button>
                 <ActionPlayIcon />
               </button>
 
               <button
+                onClick={() => deleteMutation.mutate(session._id)}
                 className="transition-opacity hover:opacity-70"
-                aria-label="Delete session"
               >
                 <ActionDeleteIcon />
               </button>
