@@ -28,15 +28,11 @@ export function SessionModeCard({
         rounded-[20px]
         border-0
         outline-none
+        bg-(--session-card-bg)
+        shadow-(--session-card-shadow)
         duration-300
         hover:cursor-pointer
-
-        hover:scale-[1.02]
       "
-      style={{
-        background: "var(--session-card-bg)",
-        boxShadow: "var(--session-card-shadow)",
-      }}
     >
       <div
         className="absolute inset-0 rounded-[20px] p-[1.11px] pointer-events-none"
@@ -44,25 +40,14 @@ export function SessionModeCard({
           background: "var(--session-card-border-gradient)",
         }}
       >
-        <div
-          className="h-full w-full rounded-[19px]"
-          style={{ background: "var(--session-card-bg)" }}
-        />
+        <div className="h-full w-full rounded-[19px] bg-(--session-card-bg) " />
       </div>
 
-      <div
-        className="absolute -top-10 -left-10 h-32 w-32 rounded-full blur-2xl pointer-events-none"
-        style={{
-          backgroundColor: "var(--session-card-glow)",
-        }}
-      />
+      <div className="absolute -top-10 -left-10 h-32 w-32 rounded-full blur-2xl pointer-events-none bg-(--session-card-glow)" />
 
       <div className="relative z-10 flex flex-col items-center gap-6">
         {icon}
-        <Typography
-          variant="label"
-          className="text-foreground"
-        >
+        <Typography variant="label" className="text-foreground">
           {title}
         </Typography>
       </div>

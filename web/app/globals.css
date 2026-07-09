@@ -54,6 +54,10 @@
 
   --room-webcam-badge: #1e1f2799;
   --room-layout-type: #636473;
+
+  --scroll-track: #111219;
+  --scroll-thumb: #272933;
+  --scroll-thumb-hover: #131416;
 }
 
 html.dark {
@@ -125,4 +129,29 @@ body {
 
 .font-lato {
   font-family: var(--font-secondary);
+}
+
+html,
+.scrollable-element {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+
+  &::-webkit-scrollbar {
+    width: 14px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: var(--scroll-track);
+    border-radius: 999px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--scroll-thumb);
+    border-radius: 999px;
+    border: 4px solid var(--scroll-track);
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: var(--scroll-thumb-hover);
+  }
 }

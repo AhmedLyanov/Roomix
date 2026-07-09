@@ -1,5 +1,6 @@
 import { Typography } from "@/shared";
 import { ActionDeleteIcon, ActionPlayIcon } from "@/shared/icons/24";
+import { formatSessionDuration } from "@/shared/lib/";
 
 import type { Session } from "../model/types";
 
@@ -45,7 +46,7 @@ export function SessionHistoryItem({
       </div>
 
       <Typography className="text-(--table-meta-text)">
-        {session.duration}s
+        {formatSessionDuration(session.duration)}
       </Typography>
 
       <div className="flex items-center gap-6">

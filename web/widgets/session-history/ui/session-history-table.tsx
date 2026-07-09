@@ -52,7 +52,7 @@ export function SessionHistoryTable({ userId }: Props) {
         </Typography>
       </div>
 
-      <div className="flex flex-col">
+      <div className="scrollable-element flex max-h-[calc(5*76px)] flex-col overflow-y-auto">
         {sessions.map((session, index) => (
           <SessionHistoryItem
             key={session._id}
