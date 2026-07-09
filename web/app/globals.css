@@ -55,9 +55,9 @@
   --room-webcam-badge: #1e1f2799;
   --room-layout-type: #636473;
 
-  --scroll-track: #111219;
-  --scroll-thumb: #272933;
-  --scroll-thumb-hover: #131416;
+  --scroll-track: #eef1f7;
+  --scroll-thumb: #c4c9d8;
+  --scroll-thumb-hover: #aab0c2;
 }
 
 html.dark {
@@ -111,6 +111,10 @@ html.dark {
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
+  --scroll-track: #111219;
+  --scroll-thumb: #272933;
+  --scroll-thumb-hover: #131416;
 }
 
 @theme inline {
