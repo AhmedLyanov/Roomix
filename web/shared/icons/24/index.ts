@@ -5,6 +5,7 @@ export { default as LessonIcon } from "./ActiveLessonIcon.svg";
 export { default as BroadcastIcon } from "./BroadcastIcon.svg";
 export { default as ChannelsIcon } from "./ChannelsIcon.svg";
 export { default as JoinIcon } from "./JoinIcon.svg";
+export { default as ModesIcon } from "./ModesIcon.svg";
 export { default as LogoIcon } from "./LogoIcon.svg";
 export { default as MeetingIcon } from "./MeetingIcon.svg";
 export { default as PluginsIcon } from "./PluginsIcon.svg";

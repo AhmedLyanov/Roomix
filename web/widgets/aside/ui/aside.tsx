@@ -1,4 +1,9 @@
-import { JoinIcon, AcademyIcon, SettingsIcon } from "@/shared/icons/24";
+import {
+  ModesIcon,
+  JoinIcon,
+  AcademyIcon,
+  SettingsIcon,
+} from "@/shared/icons/24";
 
 import { ThemeSwitch } from "@/features/theme-switch/ui/theme-switch";
 
@@ -30,7 +35,7 @@ export default function Aside() {
         <Logo />
 
         <div className="mt-28 flex flex-col justify-start gap-1">
-          <Button icon={<JoinIcon />}>Modes</Button>
+          <Button icon={<ModesIcon />}>Modes</Button>
 
           <Button icon={<JoinIcon />}>Join</Button>
 
