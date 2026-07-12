@@ -8,6 +8,8 @@ import {
   finishSession,
 } from "../services/session.service.js";
 
+import { translationService } from "../services/translation.service.js";
+
 export default fp(async function (fastify) {
   const rooms = new Map();
   const users = new Map();
@@ -100,9 +102,20 @@ export default fp(async function (fastify) {
       });
     });
 
-    socket.on("speech", ({ text }) => {
-      console.log(text);
+    socket.on("speech", async ({ text }) => {
+  try {
+    const translated = await translationService.translate({
+      text,
+      source: "ru",
+      target: "en",
     });
+
+    console.log("RU:", text);
+    console.log("EN:", translated);
+  } catch (err) {
+    console.error(err);
+  }
+});
 
     socket.on("disconnect", async () => {
       const user = users.get(socket.id);
