@@ -4,6 +4,8 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
 import Peer from "simple-peer";
 
+import { SpeechService } from "@/features/speech-recognition";
+
 interface UseRoomSessionProps {
   roomId: string;
   userId?: string;
@@ -16,8 +18,11 @@ export function useRoomSession({
   userName,
 }: UseRoomSessionProps) {
   const socketRef = useRef<Socket | null>(null);
+  const speechRef = useRef<SpeechService | null>(null);
+
   const peersRef = useRef<Map<string, Peer.Instance>>(new Map());
   const remoteStreamsRef = useRef<Map<string, MediaStream>>(new Map());
+
   const initializedRef = useRef(false);
 
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -76,9 +81,7 @@ export function useRoomSession({
       peer.on("signal", (data) => {
         if (!socketRef.current) return;
 
-        const signalData = data as {
-          type?: string;
-        };
+        const signalData = data as { type?: string };
 
         if (signalData.type === "offer") {
           socketRef.current.emit("offer", {
@@ -125,14 +128,10 @@ export function useRoomSession({
         localStream = mediaStream;
         setStream(mediaStream);
       })
-      .catch((err) => {
-        console.error(err);
-      });
+      .catch(console.error);
 
     return () => {
-      localStream?.getTracks().forEach((track) => {
-        track.stop();
-      });
+      localStream?.getTracks().forEach((track) => track.stop());
     };
   }, []);
 
@@ -142,6 +141,7 @@ export function useRoomSession({
     }
 
     if (initializedRef.current) return;
+
     initializedRef.current = true;
 
     const socket = io(
@@ -155,10 +155,25 @@ export function useRoomSession({
     socketRef.current = socket;
 
     socket.on("connect", () => {
+      console.log("SOCKET CONNECTED");
+
+      speechRef.current = new SpeechService("ru");
+
+      speechRef.current.onResult((text) => {
+        console.log("TEXT:", text);
+
+        socket.emit("speech", {
+          text,
+        });
+      });
+
+      speechRef.current.start();
+
       socket.emit("join-room", {
         roomId,
         userId,
         userName,
+        language: "ru",
       });
     });
 
@@ -211,11 +226,12 @@ export function useRoomSession({
     });
 
     return () => {
+      speechRef.current?.stop();
+      speechRef.current = null;
+
       socket.disconnect();
 
-      peersRef.current.forEach((peer) => {
-        peer.destroy();
-      });
+      peersRef.current.forEach((peer) => peer.destroy());
 
       peersRef.current.clear();
       remoteStreamsRef.current.clear();
@@ -249,6 +265,9 @@ export function useRoomSession({
   };
 
   const disconnect = useCallback(() => {
+    speechRef.current?.stop();
+    speechRef.current = null;
+
     socketRef.current?.removeAllListeners();
     socketRef.current?.disconnect();
     socketRef.current = null;
@@ -261,12 +280,11 @@ export function useRoomSession({
           }
         )._pc;
 
-        pc?.getSenders()?.forEach((sender: RTCRtpSender) => {
+        pc?.getSenders()?.forEach((sender) => {
           sender.track?.stop();
         });
 
         pc?.close();
-
         peer.destroy();
       } catch (err) {
         console.error(err);
@@ -275,18 +293,12 @@ export function useRoomSession({
 
     peersRef.current.clear();
 
-    stream?.getTracks().forEach((track) => {
-      track.stop();
-    });
+    stream?.getTracks().forEach((track) => track.stop());
 
-    screenStreamRef.current?.getTracks().forEach((track) => {
-      track.stop();
-    });
+    screenStreamRef.current?.getTracks().forEach((track) => track.stop());
 
     remoteStreamsRef.current.forEach((remoteStream) => {
-      remoteStream.getTracks().forEach((track) => {
-        track.stop();
-      });
+      remoteStream.getTracks().forEach((track) => track.stop());
     });
 
     remoteStreamsRef.current.clear();
@@ -298,6 +310,7 @@ export function useRoomSession({
     setParticipants(new Map());
 
     setStream(null);
+
     initializedRef.current = false;
   }, [stream]);
 

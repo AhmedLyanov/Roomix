@@ -33,9 +33,27 @@ const SessionSchema = new Schema(
 
     participants: [
       {
-        userId: String,
-        userName: String,
-        joinedAt: Date,
+        userId: {
+          type: String,
+          required: true,
+        },
+
+        userName: {
+          type: String,
+          required: true,
+        },
+
+        language: {
+          type: String,
+          required: true,
+          default: "en",
+        },
+
+        joinedAt: {
+          type: Date,
+          default: Date.now,
+        },
+
         leftAt: Date,
       },
     ],
@@ -60,6 +78,7 @@ const SessionSchema = new Schema(
   },
 );
 
-export default
+export default (
   mongoose.models.Session ||
-  mongoose.model("Session", SessionSchema);
+  mongoose.model("Session", SessionSchema)
+);

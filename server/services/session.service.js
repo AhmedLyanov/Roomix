@@ -1,6 +1,6 @@
 import Session from "../models/Session.model.js";
 
-export async function createSession({ roomId, ownerId, ownerName }) {
+export async function createSession({ roomId, ownerId, ownerName, language }) {
   return await Session.findOneAndUpdate(
     {
       roomId,
@@ -16,6 +16,7 @@ export async function createSession({ roomId, ownerId, ownerName }) {
           {
             userId: ownerId,
             userName: ownerName,
+            language,
             joinedAt: new Date(),
           },
         ],
@@ -29,7 +30,7 @@ export async function createSession({ roomId, ownerId, ownerName }) {
   );
 }
 
-export async function joinParticipant({ roomId, userId, userName }) {
+export async function joinParticipant({ roomId, userId, userName, language }) {
   const session = await Session.findOne({
     roomId,
     endedAt: { $exists: false },
@@ -46,6 +47,7 @@ export async function joinParticipant({ roomId, userId, userName }) {
   session.participants.push({
     userId,
     userName,
+    language,
     joinedAt: new Date(),
   });
 

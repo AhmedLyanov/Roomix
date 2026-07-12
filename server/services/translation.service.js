@@ -2,7 +2,13 @@ export class TranslationService {
   constructor() {
     this.baseUrl = process.env.TRANSLATION_SERVICE_URL;
   }
-
+  async processSpeech(event) {
+    // 1. Получить комнату
+    // 2. Получить говорящего
+    // 3. Сгруппировать участников
+    // 4. Выполнить переводы
+    // 5. Вернуть результат
+  }
   async translate({ text, source, target }) {
     try {
       const response = await fetch(`${this.baseUrl}/translate`, {
@@ -18,13 +24,13 @@ export class TranslationService {
       });
 
       if (!response.ok) {
-  const error = await response.text();
+        const error = await response.text();
 
-  console.error("FastAPI ERROR:");
-  console.error(error);
+        console.error("FastAPI ERROR:");
+        console.error(error);
 
-  throw new Error(`Translation service returned ${response.status}`);
-}
+        throw new Error(`Translation service returned ${response.status}`);
+      }
 
       const data = await response.json();
 
