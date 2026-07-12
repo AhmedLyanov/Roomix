@@ -1,14 +1,65 @@
 "use client";
 
 import { useGridLayout } from "@/shared/lib/grid/grid-layout";
-
 import { useRoomLayoutStore } from "@/shared/model/room-client.store";
-
 import { useFullscreen } from "@/shared/lib/hooks/use-full-screen";
+
 import { useRoomSession } from "@/features";
 
 import { LocalVideoCard } from "./local-video/local-video";
 import { RemoteVideoCard } from "./remote-video/remote-video";
+
+interface SubtitleProps {
+  subtitle: {
+    originalText: string;
+    translatedText: string;
+  } | null;
+}
+
+function Subtitle({ subtitle }: SubtitleProps) {
+  if (!subtitle) {
+    return null;
+  }
+
+  return (
+    <div
+      className="
+        fixed
+        bottom-28
+        left-1/2
+        z-50
+        -translate-x-1/2
+        rounded-xl
+        bg-black/80
+        px-8
+        py-4
+        text-center
+        text-white
+        shadow-xl
+        backdrop-blur
+      "
+    >
+      <div
+        className="
+          text-sm
+          text-gray-300
+        "
+      >
+        {subtitle.originalText}
+      </div>
+
+      <div
+        className="
+          mt-2
+          text-xl
+          font-medium
+        "
+      >
+        {subtitle.translatedText}
+      </div>
+    </div>
+  );
+}
 
 interface Props {
   userName?: string;
@@ -16,7 +67,7 @@ interface Props {
 }
 
 export default function RoomClient({ userName, roomSession }: Props) {
-  const { stream, remoteVideos, participants } = roomSession;
+  const { stream, remoteVideos, participants, subtitle } = roomSession;
 
   const { layoutMode } = useRoomLayoutStore();
 
@@ -35,89 +86,122 @@ export default function RoomClient({ userName, roomSession }: Props) {
 
   if (mode === "grid") {
     return (
-      <div className="h-full w-full">
-        <div
-          className="
-            grid
-            h-full
-            w-full
-            justify-center
-            content-center
-          "
-          style={{
-            gridTemplateColumns: `repeat(${grid.columns}, ${mainVideo.width}px)`,
+      <>
+        <Subtitle subtitle={subtitle} />
 
-            gridTemplateRows: `repeat(${grid.rows}, ${mainVideo.height}px)`,
+        <div className="h-full w-full">
+          <div
+            className="
+              grid
+              h-full
+              w-full
+              justify-center
+              content-center
+            "
+            style={{
+              gridTemplateColumns: `repeat(${grid.columns}, ${mainVideo.width}px)`,
 
-            gap: "24px",
-          }}
-        >
-          <LocalVideoCard
-            stream={stream}
-            userName={userName}
-            width={mainVideo.width}
-            height={mainVideo.height}
-          />
+              gridTemplateRows: `repeat(${grid.rows}, ${mainVideo.height}px)`,
 
-          {remoteVideosArray.map(([id, remoteStream]) => (
-            <RemoteVideoCard
-              key={id}
-              stream={remoteStream}
+              gap: "24px",
+            }}
+          >
+            <LocalVideoCard
+              stream={stream}
+              userName={userName}
               width={mainVideo.width}
               height={mainVideo.height}
-              userName={
-                participants.get(id)?.userName ?? `User ${id.slice(0, 5)}`
-              }
-              onFullscreen={() =>
-                toggleFullscreen(document.getElementById(`video-${id}`), id)
-              }
             />
-          ))}
+
+            {remoteVideosArray.map(([id, remoteStream]) => (
+              <RemoteVideoCard
+                key={id}
+                stream={remoteStream}
+                width={mainVideo.width}
+                height={mainVideo.height}
+                userName={
+                  participants.get(id)?.userName ?? `User ${id.slice(0, 5)}`
+                }
+                onFullscreen={() =>
+                  toggleFullscreen(document.getElementById(`video-${id}`), id)
+                }
+              />
+            ))}
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   if (mode === "focus") {
     return (
-      <div className="flex h-full justify-center gap-5">
-        <div>
-          <LocalVideoCard
-            stream={stream}
-            userName={userName}
-            width={mainVideo.width}
-            height={mainVideo.height}
-          />
-        </div>
+      <>
+        <Subtitle subtitle={subtitle} />
 
-        <div className="flex flex-col gap-4 overflow-y-auto">
-          {remoteVideosArray.map(([id, remoteStream]) => (
-            <RemoteVideoCard
-              key={id}
-              stream={remoteStream}
-              width={sidebarVideo?.width ?? 220}
-              height={sidebarVideo?.height ?? 124}
-              userName={
-                participants.get(id)?.userName ?? `User ${id.slice(0, 5)}`
-              }
-              onFullscreen={() =>
-                toggleFullscreen(document.getElementById(`video-${id}`), id)
-              }
+        <div
+          className="
+            flex
+            h-full
+            justify-center
+            gap-5
+          "
+        >
+          <div>
+            <LocalVideoCard
+              stream={stream}
+              userName={userName}
+              width={mainVideo.width}
+              height={mainVideo.height}
             />
-          ))}
+          </div>
+
+          <div
+            className="
+              flex
+              flex-col
+              gap-4
+              overflow-y-auto
+            "
+          >
+            {remoteVideosArray.map(([id, remoteStream]) => (
+              <RemoteVideoCard
+                key={id}
+                stream={remoteStream}
+                width={sidebarVideo?.width ?? 220}
+                height={sidebarVideo?.height ?? 124}
+                userName={
+                  participants.get(id)?.userName ?? `User ${id.slice(0, 5)}`
+                }
+                onFullscreen={() =>
+                  toggleFullscreen(document.getElementById(`video-${id}`), id)
+                }
+              />
+            ))}
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="flex h-full items-center justify-center">
-      <LocalVideoCard
-        stream={stream}
-        userName={userName}
-        width={mainVideo.width}
-        height={mainVideo.height}
-      />
-    </div>
+    <>
+      <Subtitle subtitle={subtitle} />
+
+      <div
+        className="
+          flex
+          h-full
+          items-center
+          justify-center
+        "
+      >
+        <LocalVideoCard
+          stream={stream}
+          userName={userName}
+          width={mainVideo.width}
+          height={mainVideo.height}
+        />
+      </div>
+    </>
   );
 }
