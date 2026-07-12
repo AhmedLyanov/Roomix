@@ -23,63 +23,78 @@ export default fp(async function (fastify) {
   });
 
   io.on("connection", (socket) => {
-    socket.on("join-room", async ({ roomId, userId, userName, language }) => {
-      socket.join(roomId);
-
-      if (!rooms.has(roomId)) {
-        rooms.set(roomId, new Map());
-      }
-
-      const room = rooms.get(roomId);
-
-      room.set(socket.id, {
-        socketId: socket.id,
-        userId,
-        userName,
-        language,
-      });
-
-      users.set(socket.id, {
-        userId,
-        userName,
-        roomId,
-      });
-
-      console.log(Array.from(room.values()));
-
-      await createSession({
-        roomId,
-        ownerId: userId,
-        ownerName: userName,
-        language,
-      });
-
-      await joinParticipant({
+    socket.on(
+      "join-room",
+      async ({
         roomId,
         userId,
         userName,
-        language,
-      });
+        speechLanguage,
+        translationLanguage,
+      }) => {
+        socket.join(roomId);
 
-      const existingUsers = Array.from(room.values())
-        .filter((participant) => participant.socketId !== socket.id)
-        .map((participant) => ({
-          socketId: participant.socketId,
-          userName: participant.userName,
-        }));
+        if (!rooms.has(roomId)) {
+          rooms.set(roomId, new Map());
+        }
 
-      if (existingUsers.length > 0) {
-        socket.emit("existing-users", {
-          users: existingUsers,
+        const room = rooms.get(roomId);
+
+        room.set(socket.id, {
+          socketId: socket.id,
+
+          userId,
+          userName,
+
+          speechLanguage,
+          translationLanguage,
         });
-      }
 
-      socket.to(roomId).emit("user-connected", {
-        socketId: socket.id,
-        userId,
-        userName,
-      });
-    });
+        users.set(socket.id, {
+          userId,
+          userName,
+          roomId,
+
+          speechLanguage,
+          translationLanguage,
+        });
+
+        console.log(Array.from(room.values()));
+
+        await createSession({
+          roomId,
+          ownerId: userId,
+          ownerName: userName,
+          language: speechLanguage,
+        });
+
+        await joinParticipant({
+          roomId,
+          userId,
+          userName,
+          language: speechLanguage,
+        });
+
+        const existingUsers = Array.from(room.values())
+          .filter((participant) => participant.socketId !== socket.id)
+          .map((participant) => ({
+            socketId: participant.socketId,
+            userName: participant.userName,
+          }));
+
+        if (existingUsers.length > 0) {
+          socket.emit("existing-users", {
+            users: existingUsers,
+          });
+        }
+
+        socket.to(roomId).emit("user-connected", {
+          socketId: socket.id,
+          userId,
+          userName,
+        });
+      },
+    );
 
     socket.on("offer", ({ offer, to }) => {
       io.to(to).emit("offer", {
@@ -103,24 +118,45 @@ export default fp(async function (fastify) {
     });
 
     socket.on("speech", async ({ text }) => {
-  try {
-    const translated = await translationService.translate({
-      text,
-      source: "ru",
-      target: "en",
-    });
+      try {
+        const user = users.get(socket.id);
 
-    console.log("RU:", text);
-    console.log("EN:", translated);
-  } catch (err) {
-    console.error(err);
-  }
-});
+        if (!user) {
+          return;
+        }
+
+        const translated = await translationService.translate({
+          text,
+
+          source: user.speechLanguage,
+
+          target: user.translationLanguage,
+        });
+
+        console.log(`${user.speechLanguage}:`, text);
+
+        console.log(`${user.translationLanguage}:`, translated);
+
+        socket.emit("subtitle", {
+          originalText: text,
+
+          translatedText: translated,
+
+          sourceLanguage: user.speechLanguage,
+
+          targetLanguage: user.translationLanguage,
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    });
 
     socket.on("disconnect", async () => {
       const user = users.get(socket.id);
 
-      if (!user) return;
+      if (!user) {
+        return;
+      }
 
       const { roomId, userId } = user;
 
@@ -136,6 +172,7 @@ export default fp(async function (fastify) {
 
         if (room.size === 0) {
           await finishSession(roomId);
+
           rooms.delete(roomId);
         }
 
