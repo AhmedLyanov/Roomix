@@ -16,11 +16,12 @@ export function RemoteVideoCard({ stream, userName, width, height }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!videoRef.current) return;
+    if (!videoRef.current || !stream) {
+      return;
+    }
 
     videoRef.current.srcObject = stream;
   }, [stream]);
-
   const handleFullscreen = async () => {
     if (!containerRef.current) return;
 

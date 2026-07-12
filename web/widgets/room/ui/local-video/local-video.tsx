@@ -14,19 +14,11 @@ export function LocalVideoCard({ stream, userName, width, height }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    const video = videoRef.current;
-
-    if (!video) return;
-
-    if (stream) {
-      video.srcObject = stream;
+    if (!videoRef.current || !stream) {
+      return;
     }
 
-    return () => {
-      video.pause();
-      video.srcObject = null;
-      video.load();
-    };
+    videoRef.current.srcObject = stream;
   }, [stream]);
 
   return (
