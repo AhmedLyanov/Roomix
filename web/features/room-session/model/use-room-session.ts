@@ -10,12 +10,17 @@ interface UseRoomSessionProps {
   roomId: string;
   userId?: string;
   userName?: string;
+
+  speechLanguage: string;
+  translationLanguage: string;
 }
 
 export function useRoomSession({
   roomId,
   userId,
   userName,
+  speechLanguage,
+  translationLanguage,
 }: UseRoomSessionProps) {
   const socketRef = useRef<Socket | null>(null);
   const speechRef = useRef<SpeechService | null>(null);
@@ -34,25 +39,35 @@ export function useRoomSession({
   const [participants, setParticipants] = useState<
     Map<string, { userName: string }>
   >(new Map());
+  const [subtitle, setSubtitle] = useState<{
+    originalText: string;
+    translatedText: string;
+    sourceLanguage: string;
+    targetLanguage: string;
+  } | null>(null);
 
   const [isCameraOn, setIsCameraOn] = useState(true);
   const [isMicOn, setIsMicOn] = useState(true);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
 
   const screenStreamRef = useRef<MediaStream | null>(null);
+
   const originalTrackRef = useRef<MediaStreamTrack | null>(null);
 
   const removePeer = useCallback((socketId: string) => {
     peersRef.current.get(socketId)?.destroy();
 
     peersRef.current.delete(socketId);
+
     remoteStreamsRef.current.delete(socketId);
 
     setRemoteVideos(new Map(remoteStreamsRef.current));
 
     setParticipants((prev) => {
       const next = new Map(prev);
+
       next.delete(socketId);
+
       return next;
     });
   }, []);
@@ -69,6 +84,7 @@ export function useRoomSession({
         initiator,
         trickle: true,
         stream,
+
         config: {
           iceServers: [
             {
@@ -103,10 +119,12 @@ export function useRoomSession({
 
       peer.on("stream", (remoteStream) => {
         remoteStreamsRef.current.set(socketId, remoteStream);
+
         setRemoteVideos(new Map(remoteStreamsRef.current));
       });
 
       peer.on("close", () => removePeer(socketId));
+
       peer.on("error", () => removePeer(socketId));
 
       peersRef.current.set(socketId, peer);
@@ -124,10 +142,13 @@ export function useRoomSession({
         video: true,
         audio: true,
       })
+
       .then((mediaStream) => {
         localStream = mediaStream;
+
         setStream(mediaStream);
       })
+
       .catch(console.error);
 
     return () => {
@@ -146,6 +167,7 @@ export function useRoomSession({
 
     const socket = io(
       process.env.NEXT_PUBLIC_SIGNALING_URL || "http://localhost:5000",
+
       {
         path: "/ws",
         transports: ["websocket"],
@@ -157,7 +179,7 @@ export function useRoomSession({
     socket.on("connect", () => {
       console.log("SOCKET CONNECTED");
 
-      speechRef.current = new SpeechService("ru");
+      speechRef.current = new SpeechService(speechLanguage);
 
       speechRef.current.onResult((text) => {
         console.log("TEXT:", text);
@@ -173,8 +195,15 @@ export function useRoomSession({
         roomId,
         userId,
         userName,
-        language: "ru",
+
+        speechLanguage,
+
+        translationLanguage,
       });
+    });
+
+    socket.on("subtitle", (data) => {
+      setSubtitle(data);
     });
 
     socket.on("existing-users", ({ users }) => {
@@ -183,7 +212,11 @@ export function useRoomSession({
 
         setParticipants((prev) => {
           const next = new Map(prev);
-          next.set(socketId, { userName });
+
+          next.set(socketId, {
+            userName,
+          });
+
           return next;
         });
 
@@ -196,7 +229,11 @@ export function useRoomSession({
 
       setParticipants((prev) => {
         const next = new Map(prev);
-        next.set(socketId, { userName });
+
+        next.set(socketId, {
+          userName,
+        });
+
         return next;
       });
 
@@ -227,6 +264,7 @@ export function useRoomSession({
 
     return () => {
       speechRef.current?.stop();
+
       speechRef.current = null;
 
       socket.disconnect();
@@ -234,11 +272,21 @@ export function useRoomSession({
       peersRef.current.forEach((peer) => peer.destroy());
 
       peersRef.current.clear();
+
       remoteStreamsRef.current.clear();
 
       initializedRef.current = false;
     };
-  }, [roomId, userId, userName, stream, createPeer, removePeer]);
+  }, [
+    roomId,
+    userId,
+    userName,
+    stream,
+    speechLanguage,
+    translationLanguage,
+    createPeer,
+    removePeer,
+  ]);
 
   const toggleCamera = () => {
     if (!stream) return;
@@ -266,47 +314,19 @@ export function useRoomSession({
 
   const disconnect = useCallback(() => {
     speechRef.current?.stop();
+
     speechRef.current = null;
 
-    socketRef.current?.removeAllListeners();
     socketRef.current?.disconnect();
-    socketRef.current = null;
 
-    peersRef.current.forEach((peer) => {
-      try {
-        const pc = (
-          peer as Peer.Instance & {
-            _pc?: RTCPeerConnection;
-          }
-        )._pc;
-
-        pc?.getSenders()?.forEach((sender) => {
-          sender.track?.stop();
-        });
-
-        pc?.close();
-        peer.destroy();
-      } catch (err) {
-        console.error(err);
-      }
-    });
+    peersRef.current.forEach((peer) => peer.destroy());
 
     peersRef.current.clear();
 
     stream?.getTracks().forEach((track) => track.stop());
 
-    screenStreamRef.current?.getTracks().forEach((track) => track.stop());
-
-    remoteStreamsRef.current.forEach((remoteStream) => {
-      remoteStream.getTracks().forEach((track) => track.stop());
-    });
-
-    remoteStreamsRef.current.clear();
-
-    screenStreamRef.current = null;
-    originalTrackRef.current = null;
-
     setRemoteVideos(new Map());
+
     setParticipants(new Map());
 
     setStream(null);
@@ -316,13 +336,23 @@ export function useRoomSession({
 
   return {
     stream,
+
     remoteVideos,
+
     participants,
+
+    subtitle,
+
     isCameraOn,
+
     isMicOn,
+
     isScreenSharing,
+
     toggleCamera,
+
     toggleMic,
+
     disconnect,
   };
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { UserButton, useUser } from "@clerk/nextjs";
 import { useParams } from "next/navigation";
 
@@ -32,6 +33,9 @@ export default function RoomPage() {
 
   const { user, isLoaded } = useUser();
 
+  const [speechLanguage, setSpeechLanguage] = useState("ru");
+  const [translationLanguage, setTranslationLanguage] = useState("en");
+
   const userId = isLoaded ? user?.id : undefined;
 
   const userName = isLoaded
@@ -45,6 +49,9 @@ export default function RoomPage() {
     roomId,
     userId,
     userName,
+
+    speechLanguage,
+    translationLanguage,
   });
 
   if (!isLoaded || !user) {
@@ -108,6 +115,29 @@ export default function RoomPage() {
 
       <div className="relative flex-1 overflow-hidden">
         <div className="relative h-full px-31 py-10.75">
+          {/* временное переключение языков */}
+          <div className="mb-4 flex gap-3">
+            <button
+              className="rounded bg-gray-200 px-4 py-2"
+              onClick={() => {
+                setSpeechLanguage("ru");
+                setTranslationLanguage("en");
+              }}
+            >
+              RU → EN
+            </button>
+
+            <button
+              className="rounded bg-gray-200 px-4 py-2"
+              onClick={() => {
+                setSpeechLanguage("en");
+                setTranslationLanguage("ru");
+              }}
+            >
+              EN → RU
+            </button>
+          </div>
+
           <RoomLayoutSwitcher />
 
           <div
