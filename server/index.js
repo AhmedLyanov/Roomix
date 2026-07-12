@@ -28,6 +28,8 @@ export default async function app(fastify, opts) {
   );
   await connectDatabase();
 
+  
+
   fastify.register(clerkWebhook);
 
   fastify.register(AutoLoad, {
