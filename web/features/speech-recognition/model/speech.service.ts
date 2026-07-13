@@ -11,163 +11,127 @@ const LANGUAGE_MAP: Record<string, string> = {
 };
 
 export class SpeechService {
-  private recognition: SpeechRecognition;
-  private isRunning: boolean = false;
-  private restartTimeout: ReturnType<typeof setTimeout> | null = null;
+  private recognition: SpeechRecognition | null = null;
+  private isStopping = false;
   private onResultCallback: ((text: string) => void) | null = null;
-  private isStopping: boolean = false;
+  private language: string;
+  private restartTimer: ReturnType<typeof setTimeout> | null = null;
+  private startTime = 0;
+  private quickFailCount = 0;
 
   constructor(language: string = "ru") {
+    this.language = language;
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
-
     if (!SpeechRecognition) {
       throw new Error("Speech Recognition is not supported.");
     }
-
-    this.recognition = new SpeechRecognition();
-    this.recognition.lang = LANGUAGE_MAP[language] ?? "en-US";
-    this.recognition.continuous = true;
-    this.recognition.interimResults = false;
-    this.recognition.maxAlternatives = 1;
-
-    this.bindEventHandlers();
   }
 
-  private bindEventHandlers() {
+  private create() {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    this.recognition = new SpeechRecognition();
+    this.recognition.lang = LANGUAGE_MAP[this.language] ?? "en-US";
+    this.recognition.continuous = false; // ВАЖНО: false — Chrome стабильнее
+    this.recognition.interimResults = true; // ВАЖНО: true — Chrome держит открытым
+    this.recognition.maxAlternatives = 1;
+
     this.recognition.onstart = () => {
-      console.log("[SpeechService] ✅ onstart — recognition started");
-      this.isRunning = true;
-      this.isStopping = false;
+      console.log("[SpeechService] ✅ started");
+      this.startTime = Date.now();
     };
 
     this.recognition.onresult = (event: SpeechRecognitionEvent) => {
-      console.log(
-        "[SpeechService] 🎤 onresult — results length:",
-        event.results.length,
-      );
+      const last = event.results[event.results.length - 1];
+      if (!last.isFinal) return;
 
-      const result = event.results[event.results.length - 1];
-
-      if (!result.isFinal) {
-        console.log("[SpeechService] ⏳ interim result, skipping");
-        return;
-      }
-
-      const text = result[0].transcript.trim();
-      console.log("[SpeechService] 📝 FINAL TEXT:", text);
-
-      if (this.onResultCallback && text.length > 0) {
+      const text = last[0].transcript.trim();
+      console.log("[SpeechService] 📝 final:", text);
+      if (text && this.onResultCallback) {
         this.onResultCallback(text);
       }
     };
 
     this.recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-      console.error("[SpeechService] ❌ onerror:", event.error, event.message);
-
-      if (event.error === "aborted") {
-        if (this.isStopping) {
-          console.log("[SpeechService] 🛑 aborted by manual stop — OK");
-        } else {
-          console.log("[SpeechService] ⚠️ aborted unexpectedly — will restart");
-        }
-      } else if (event.error === "no-speech") {
-        console.log("[SpeechService] 🔇 no speech detected — will restart");
-      } else if (event.error === "audio-capture") {
-        console.error(
-          "[SpeechService] 🎙️ audio-capture error — check microphone",
-        );
-      } else if (event.error === "not-allowed") {
-        console.error(
-          "[SpeechService] 🚫 not-allowed — microphone permission denied",
-        );
+      if (event.error === "aborted" || event.error === "no-speech") {
+        console.log("[SpeechService]", event.error);
+        return;
       }
+      console.error("[SpeechService] error:", event.error);
     };
 
     this.recognition.onend = () => {
-      console.log(
-        "[SpeechService] 🏁 onend — recognition ended, isRunning:",
-        this.isRunning,
-        "isStopping:",
-        this.isStopping,
-      );
-      this.isRunning = false;
+      const duration = Date.now() - this.startTime;
+      console.log("[SpeechService] 🏁 ended, duration:", duration, "ms");
 
-      if (this.isStopping) {
-        console.log("[SpeechService] 🛑 manual stop confirmed, NOT restarting");
+      if (this.isStopping) return;
+      let delay = 300;
+      if (duration < 500) {
+        this.quickFailCount++;
+        delay = Math.min(500 * this.quickFailCount, 3000);
+        console.log(
+          "[SpeechService] quick fail",
+          this.quickFailCount,
+          "delay:",
+          delay,
+        );
+      } else {
+        this.quickFailCount = 0;
+      }
+
+      if (this.quickFailCount > 8) {
+        console.error("[SpeechService] too many quick fails, giving up");
         return;
       }
 
-      // Автоперезапуск с задержкой
-      console.log("[SpeechService] 🔄 scheduling restart in 200ms...");
-      this.restartTimeout = setTimeout(() => {
-        if (this.isStopping) {
-          console.log(
-            "[SpeechService] 🛑 restart cancelled — manual stop was called",
-          );
-          return;
-        }
-        try {
-          console.log("[SpeechService] 🚀 restarting recognition...");
-          this.recognition.start();
-        } catch (err) {
-          console.error("[SpeechService] ❌ restart failed:", err);
-        }
-      }, 200);
+      this.restartTimer = setTimeout(() => {
+        if (!this.isStopping) this.start();
+      }, delay);
     };
   }
 
   start() {
-    console.log(
-      "[SpeechService] ▶️ start() called, isRunning:",
-      this.isRunning,
-      "isStopping:",
-      this.isStopping,
-    );
-
-    if (this.isRunning) {
-      console.log("[SpeechService] ⏭️ already running, skipping");
-      return;
-    }
-
-    this.isStopping = false;
+    if (this.isStopping) return;
+    if (!this.recognition) this.create();
 
     try {
-      this.recognition.start();
+      this.recognition?.start();
     } catch (err) {
-      console.error("[SpeechService] ❌ start() failed:", err);
+      console.error("[SpeechService] start failed:", err);
+      this.recognition = null;
+      this.restartTimer = setTimeout(() => {
+        if (!this.isStopping) this.start();
+      }, 1000);
     }
   }
 
   stop() {
-    console.log("[SpeechService] ⏹️ stop() called");
+    console.log("[SpeechService] ⏹️ stop");
     this.isStopping = true;
-    this.isRunning = false;
+    this.quickFailCount = 0;
 
-    if (this.restartTimeout) {
-      clearTimeout(this.restartTimeout);
-      this.restartTimeout = null;
+    if (this.restartTimer) {
+      clearTimeout(this.restartTimer);
+      this.restartTimer = null;
     }
 
     try {
-      this.recognition.stop();
-    } catch (err) {
-      console.error("[SpeechService] ❌ stop() error:", err);
-    }
+      this.recognition?.stop();
+    } catch {}
+
+    this.recognition = null;
   }
 
   setLanguage(language: string) {
-    const newLang = LANGUAGE_MAP[language] ?? "en-US";
-    console.log("[SpeechService] 🌐 setLanguage:", newLang);
-    this.recognition.lang = newLang;
+    this.language = language;
+    if (this.recognition) {
+      this.recognition.lang = LANGUAGE_MAP[language] ?? "en-US";
+    }
   }
 
   onResult(callback: (text: string) => void) {
-    console.log("[SpeechService] 🔗 onResult callback registered");
     this.onResultCallback = callback;
-  }
-
-  get isActive() {
-    return this.isRunning;
   }
 }

@@ -38,3 +38,4 @@ export { default as RoomPluginsIcon } from "./RoomPluginsIcon.svg";
 export { default as SearchIcon } from "./SearchIcon.svg";
 
 export { default as FullScreenIcon } from "./fullscreen-icon.svg";
+export { default as LanguageIcon } from "./Localization.svg";

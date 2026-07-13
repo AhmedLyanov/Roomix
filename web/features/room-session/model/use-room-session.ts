@@ -6,20 +6,27 @@ import Peer from "simple-peer";
 
 import { SpeechService } from "@/features/speech-recognition";
 
+export interface SubtitleData {
+  originalText: string;
+  translatedText: string;
+  speakerId: string;
+  sourceLanguage: string;
+  targetLanguage: string;
+  timestamp: number;
+}
+
 interface UseRoomSessionProps {
   roomId: string;
   userId?: string;
   userName?: string;
-  speechLanguage: string;
-  translationLanguage: string;
+  nativeLanguage: string;
 }
 
 export function useRoomSession({
   roomId,
   userId,
   userName,
-  speechLanguage,
-  translationLanguage,
+  nativeLanguage,
 }: UseRoomSessionProps) {
   const socketRef = useRef<Socket | null>(null);
   const speechRef = useRef<SpeechService | null>(null);
@@ -34,18 +41,32 @@ export function useRoomSession({
   const [participants, setParticipants] = useState<
     Map<string, { userName: string }>
   >(new Map());
-  const [subtitle, setSubtitle] = useState<{
-    originalText: string;
-    translatedText: string;
-    sourceLanguage: string;
-    targetLanguage: string;
-  } | null>(null);
+  const [subtitles, setSubtitles] = useState<Map<string, SubtitleData>>(
+    new Map(),
+  );
+  const [socketId, setSocketId] = useState<string>("");
 
   const [isCameraOn, setIsCameraOn] = useState(true);
   const [isMicOn, setIsMicOn] = useState(true);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const screenStreamRef = useRef<MediaStream | null>(null);
   const originalTrackRef = useRef<MediaStreamTrack | null>(null);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSubtitles((prev) => {
+        const now = Date.now();
+        const next = new Map();
+        for (const [key, value] of prev) {
+          if (now - value.timestamp < 10000) {
+            next.set(key, value);
+          }
+        }
+        return next;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const removePeer = useCallback((socketId: string) => {
     console.log("[useRoomSession] removePeer:", socketId);
@@ -108,8 +129,6 @@ export function useRoomSession({
     },
     [stream, removePeer],
   );
-
-  // Получение медиапотока
   useEffect(() => {
     let localStream: MediaStream | null = null;
 
@@ -129,7 +148,6 @@ export function useRoomSession({
     };
   }, []);
 
-  // Основной эффект подключения
   useEffect(() => {
     if (!stream || !userId || !userName) {
       console.log("[useRoomSession] ⏳ Waiting for stream/userId/userName...");
@@ -156,13 +174,14 @@ export function useRoomSession({
 
     socket.on("connect", () => {
       console.log("[useRoomSession] ✅ SOCKET CONNECTED, id:", socket.id);
+      setSocketId(socket.id);
 
       if (!speechRef.current) {
         console.log(
           "[useRoomSession] 🎤 Creating SpeechService, language:",
-          speechLanguage,
+          nativeLanguage,
         );
-        speechRef.current = new SpeechService(speechLanguage);
+        speechRef.current = new SpeechService(nativeLanguage);
 
         speechRef.current.onResult((text) => {
           console.log("[useRoomSession] 🎤 Speech result:", text);
@@ -179,8 +198,7 @@ export function useRoomSession({
         roomId,
         userId,
         userName,
-        speechLanguage,
-        translationLanguage,
+        nativeLanguage,
       });
       console.log("[useRoomSession] 📤 'join-room' emitted");
     });
@@ -193,10 +211,16 @@ export function useRoomSession({
       console.log("[useRoomSession] 🔌 SOCKET DISCONNECTED:", reason);
     });
 
-    // === ПОЛУЧЕНИЕ СУБТИТРОВ ===
     socket.on("subtitle", (data) => {
       console.log("[useRoomSession] 📥 RECEIVED 'subtitle':", data);
-      setSubtitle(data);
+      setSubtitles((prev) => {
+        const next = new Map(prev);
+        next.set(data.speakerId, {
+          ...data,
+          timestamp: Date.now(),
+        });
+        return next;
+      });
     });
 
     socket.on("existing-users", ({ users }) => {
@@ -246,6 +270,11 @@ export function useRoomSession({
 
     socket.on("user-disconnected", ({ socketId }) => {
       removePeer(socketId);
+      setSubtitles((prev) => {
+        const next = new Map(prev);
+        next.delete(socketId);
+        return next;
+      });
     });
 
     return () => {
@@ -263,8 +292,7 @@ export function useRoomSession({
     userId,
     userName,
     stream,
-    speechLanguage,
-    translationLanguage,
+    nativeLanguage,
     createPeer,
     removePeer,
   ]);
@@ -288,7 +316,6 @@ export function useRoomSession({
   };
 
   const toggleScreenShare = useCallback(() => {
-    // TODO: implement screen sharing
     console.log("[useRoomSession] toggleScreenShare — not implemented yet");
   }, []);
 
@@ -302,6 +329,7 @@ export function useRoomSession({
     stream?.getTracks().forEach((track) => track.stop());
     setRemoteVideos(new Map());
     setParticipants(new Map());
+    setSubtitles(new Map());
     setStream(null);
     initializedRef.current = false;
   }, [stream]);
@@ -310,7 +338,8 @@ export function useRoomSession({
     stream,
     remoteVideos,
     participants,
-    subtitle,
+    subtitles,
+    socketId,
     isCameraOn,
     isMicOn,
     isScreenSharing,

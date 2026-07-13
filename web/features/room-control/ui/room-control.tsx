@@ -8,14 +8,22 @@ import {
   ShareVideoIcon,
   StartRecordIcon,
   SmileIcon,
+  LanguageIcon,
 } from "@/shared/icons/24";
 
 import { Button } from "@/shared";
+
+const LANGUAGES = [
+  { code: "ru", label: "Русский" },
+  { code: "en", label: "English" },
+];
 
 interface RoomControlProps {
   isCameraOn: boolean;
   isMicOn: boolean;
   isScreenSharing: boolean;
+  nativeLanguage: string;
+  onLanguageChange: (language: string) => void;
 
   onToggleCamera: () => void;
   onToggleMic: () => void;
@@ -27,6 +35,8 @@ export function RoomControl({
   isCameraOn,
   isMicOn,
   isScreenSharing,
+  nativeLanguage,
+  onLanguageChange,
   onToggleCamera,
   onToggleMic,
   onToggleScreenShare,
@@ -35,6 +45,21 @@ export function RoomControl({
   return (
     <div className="flex h-20 items-center justify-center bg-(--room-control-primary)">
       <div className="flex items-center gap-7.5">
+        <div className="flex items-center gap-2">
+          <LanguageIcon className="text-(--color-gray-light)" />
+          <select
+            className="rounded-lg border border-gray-300 bg-white px-2 py-1 text-sm dark:bg-gray-800 dark:border-gray-600"
+            value={nativeLanguage}
+            onChange={(e) => onLanguageChange(e.target.value)}
+          >
+            {LANGUAGES.map((lang) => (
+              <option key={lang.code} value={lang.code}>
+                {lang.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <Button
           variant="control"
           icon={<MicroIcon />}
@@ -42,10 +67,7 @@ export function RoomControl({
           className={!isMicOn ? "opacity-50" : ""}
         />
 
-        <Button
-          variant="control"
-          icon={<SoundOnIcon />}
-        />
+        <Button variant="control" icon={<SoundOnIcon />} />
 
         <Button
           variant="control"
@@ -75,15 +97,9 @@ export function RoomControl({
           className={!isScreenSharing ? "opacity-50" : ""}
         />
 
-        <Button
-          variant="control"
-          icon={<StartRecordIcon />}
-        />
+        <Button variant="control" icon={<StartRecordIcon />} />
 
-        <Button
-          variant="control"
-          icon={<SmileIcon />}
-        />
+        <Button variant="control" icon={<SmileIcon />} />
       </div>
     </div>
   );

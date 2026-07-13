@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useGridLayout } from "@/shared/lib/grid/grid-layout";
 import { useRoomLayoutStore } from "@/shared/model/room-client.store";
 import { useFullscreen } from "@/shared/lib/hooks/use-full-screen";
@@ -9,53 +10,50 @@ import { useRoomSession } from "@/features";
 import { LocalVideoCard } from "./local-video/local-video";
 import { RemoteVideoCard } from "./remote-video/remote-video";
 
-interface SubtitleProps {
+interface SubtitleBubbleProps {
   subtitle: {
     originalText: string;
     translatedText: string;
   } | null;
 }
 
-function Subtitle({ subtitle }: SubtitleProps) {
-  if (!subtitle) {
-    return null;
-  }
+function SubtitleBubble({ subtitle }: SubtitleBubbleProps) {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setVisible(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+
+  if (!subtitle) return null;
 
   return (
     <div
-      className="
-        fixed
-        bottom-28
-        left-1/2
-        z-50
-        -translate-x-1/2
-        rounded-xl
-        bg-black/80
-        px-8
-        py-4
-        text-center
-        text-white
-        shadow-xl
-        backdrop-blur
-      "
+      className={`
+        absolute bottom-4 left-1/2 z-30 w-full max-w-[88%] -translate-x-1/2
+        pointer-events-none
+        transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]
+        ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"}
+      `}
     >
       <div
         className="
-          text-sm
-          text-gray-300
+          rounded-2xl
+          border
+          border-[var(--color-border-strong)]
+          bg-[var(--room-navigation-bg)]/95
+          px-4
+          py-3
+          shadow-[0_8px_32px_rgba(0,0,0,0.4)]
+          backdrop-blur-xl
         "
       >
-        {subtitle.originalText}
-      </div>
-
-      <div
-        className="
-          mt-2
-          text-xl
-          font-medium
-        "
-      >
-        {subtitle.translatedText}
+        <div className="text-[11px] leading-tight tracking-wide text-[var(--color-gray)] line-clamp-1">
+          {subtitle.originalText}
+        </div>
+        <div className="mt-1 text-[13px] leading-snug font-medium text-[var(--color-foreground)] line-clamp-2">
+          {subtitle.translatedText}
+        </div>
       </div>
     </div>
   );
@@ -67,7 +65,8 @@ interface Props {
 }
 
 export default function RoomClient({ userName, roomSession }: Props) {
-  const { stream, remoteVideos, participants, subtitle } = roomSession;
+  const { stream, remoteVideos, participants, subtitles, socketId } =
+    roomSession;
 
   const { layoutMode } = useRoomLayoutStore();
 
@@ -84,124 +83,164 @@ export default function RoomClient({ userName, roomSession }: Props) {
 
   const remoteVideosArray = Array.from(remoteVideos.entries());
 
+  const localSubtitle = socketId ? (subtitles.get(socketId) ?? null) : null;
+
   if (mode === "grid") {
     return (
-      <>
-        <Subtitle subtitle={subtitle} />
-
-        <div className="h-full w-full">
-          <div
-            className="
-              grid
-              h-full
-              w-full
-              justify-center
-              content-center
-            "
-            style={{
-              gridTemplateColumns: `repeat(${grid.columns}, ${mainVideo.width}px)`,
-
-              gridTemplateRows: `repeat(${grid.rows}, ${mainVideo.height}px)`,
-
-              gap: "24px",
-            }}
-          >
+      <div className="h-full w-full">
+        <div
+          className="
+            grid
+            h-full
+            w-full
+            justify-center
+            content-center
+          "
+          style={{
+            gridTemplateColumns: `repeat(${grid.columns}, ${mainVideo.width}px)`,
+            gridTemplateRows: `repeat(${grid.rows}, ${mainVideo.height}px)`,
+            gap: "24px",
+          }}
+        >
+          <div className="relative">
             <LocalVideoCard
               stream={stream}
               userName={userName}
               width={mainVideo.width}
               height={mainVideo.height}
             />
-
-            {remoteVideosArray.map(([id, remoteStream]) => (
-              <RemoteVideoCard
-                key={id}
-                stream={remoteStream}
-                width={mainVideo.width}
-                height={mainVideo.height}
-                userName={
-                  participants.get(id)?.userName ?? `User ${id.slice(0, 5)}`
-                }
-                onFullscreen={() =>
-                  toggleFullscreen(document.getElementById(`video-${id}`), id)
-                }
-              />
-            ))}
+            <SubtitleBubble
+              key={
+                localSubtitle
+                  ? `${localSubtitle.originalText}-${localSubtitle.translatedText}`
+                  : "local"
+              }
+              subtitle={localSubtitle}
+            />
           </div>
+
+          {remoteVideosArray.map(([id, remoteStream]) => {
+            const remoteSubtitle = subtitles.get(id) ?? null;
+            return (
+              <div key={id} className="relative">
+                <RemoteVideoCard
+                  stream={remoteStream}
+                  width={mainVideo.width}
+                  height={mainVideo.height}
+                  userName={
+                    participants.get(id)?.userName ?? `User ${id.slice(0, 5)}`
+                  }
+                  onFullscreen={() =>
+                    toggleFullscreen(document.getElementById(`video-${id}`), id)
+                  }
+                />
+                <SubtitleBubble
+                  key={
+                    remoteSubtitle
+                      ? `${remoteSubtitle.originalText}-${remoteSubtitle.translatedText}`
+                      : id
+                  }
+                  subtitle={remoteSubtitle}
+                />
+              </div>
+            );
+          })}
         </div>
-      </>
+      </div>
     );
   }
 
   if (mode === "focus") {
     return (
-      <>
-        <Subtitle subtitle={subtitle} />
-
-        <div
-          className="
-            flex
-            h-full
-            justify-center
-            gap-5
-          "
-        >
-          <div>
-            <LocalVideoCard
-              stream={stream}
-              userName={userName}
-              width={mainVideo.width}
-              height={mainVideo.height}
-            />
-          </div>
-
-          <div
-            className="
-              flex
-              flex-col
-              gap-4
-              overflow-y-auto
-            "
-          >
-            {remoteVideosArray.map(([id, remoteStream]) => (
-              <RemoteVideoCard
-                key={id}
-                stream={remoteStream}
-                width={sidebarVideo?.width ?? 220}
-                height={sidebarVideo?.height ?? 124}
-                userName={
-                  participants.get(id)?.userName ?? `User ${id.slice(0, 5)}`
-                }
-                onFullscreen={() =>
-                  toggleFullscreen(document.getElementById(`video-${id}`), id)
-                }
-              />
-            ))}
-          </div>
-        </div>
-      </>
-    );
-  }
-
-  return (
-    <>
-      <Subtitle subtitle={subtitle} />
-
       <div
         className="
           flex
           h-full
-          items-center
           justify-center
+          gap-5
         "
       >
+        <div className="relative">
+          <LocalVideoCard
+            stream={stream}
+            userName={userName}
+            width={mainVideo.width}
+            height={mainVideo.height}
+          />
+          <SubtitleBubble
+            key={
+              localSubtitle
+                ? `${localSubtitle.originalText}-${localSubtitle.translatedText}`
+                : "local"
+            }
+            subtitle={localSubtitle}
+          />
+        </div>
+
+        <div
+          className="
+            flex
+            flex-col
+            gap-4
+            overflow-y-auto
+          "
+        >
+          {remoteVideosArray.map(([id, remoteStream]) => {
+            const remoteSubtitle = subtitles.get(id) ?? null;
+            return (
+              <div key={id} className="relative">
+                <RemoteVideoCard
+                  stream={remoteStream}
+                  width={sidebarVideo?.width ?? 220}
+                  height={sidebarVideo?.height ?? 124}
+                  userName={
+                    participants.get(id)?.userName ?? `User ${id.slice(0, 5)}`
+                  }
+                  onFullscreen={() =>
+                    toggleFullscreen(document.getElementById(`video-${id}`), id)
+                  }
+                />
+                <SubtitleBubble
+                  key={
+                    remoteSubtitle
+                      ? `${remoteSubtitle.originalText}-${remoteSubtitle.translatedText}`
+                      : id
+                  }
+                  subtitle={remoteSubtitle}
+                />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="
+        flex
+        h-full
+        items-center
+        justify-center
+      "
+    >
+      <div className="relative">
         <LocalVideoCard
           stream={stream}
           userName={userName}
           width={mainVideo.width}
           height={mainVideo.height}
         />
+        <SubtitleBubble
+          key={
+            localSubtitle
+              ? `${localSubtitle.originalText}-${localSubtitle.translatedText}`
+              : "local"
+          }
+          subtitle={localSubtitle}
+        />
       </div>
-    </>
+    </div>
   );
 }

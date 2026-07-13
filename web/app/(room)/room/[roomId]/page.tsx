@@ -28,16 +28,12 @@ import { RoomClient } from "@/widgets/room";
 
 export default function RoomPage() {
   const params = useParams();
-
   const roomId = params.roomId as string;
-
   const { user, isLoaded } = useUser();
 
-  const [speechLanguage, setSpeechLanguage] = useState("ru");
-  const [translationLanguage, setTranslationLanguage] = useState("en");
+  const [nativeLanguage, setNativeLanguage] = useState("ru");
 
   const userId = isLoaded ? user?.id : undefined;
-
   const userName = isLoaded
     ? (user?.fullName ??
       user?.username ??
@@ -49,9 +45,7 @@ export default function RoomPage() {
     roomId,
     userId,
     userName,
-
-    speechLanguage,
-    translationLanguage,
+    nativeLanguage,
   });
 
   if (!isLoaded || !user) {
@@ -59,7 +53,6 @@ export default function RoomPage() {
   }
 
   const participantCount = 1 + roomSession.remoteVideos.size;
-
   const roomUrl = typeof window !== "undefined" ? window.location.href : "";
 
   const handleLeaveRoom = () => {
@@ -75,11 +68,8 @@ export default function RoomPage() {
 
           <div className="flex items-center gap-4">
             <Button variant="control" icon={<SettingsIcon />} />
-
             <Button variant="control" icon={<QuestionIcon />} />
-
             <Button variant="control" icon={<LightningIcon />} badge />
-
             <div className="h-11.25 w-11.25">
               <UserButton
                 appearance={{
@@ -115,29 +105,6 @@ export default function RoomPage() {
 
       <div className="relative flex-1 overflow-hidden">
         <div className="relative h-full px-31 py-10.75">
-          {/* временное переключение языков */}
-          <div className="mb-4 flex gap-3">
-            <button
-              className="rounded bg-gray-200 px-4 py-2"
-              onClick={() => {
-                setSpeechLanguage("ru");
-                setTranslationLanguage("en");
-              }}
-            >
-              RU → EN
-            </button>
-
-            <button
-              className="rounded bg-gray-200 px-4 py-2"
-              onClick={() => {
-                setSpeechLanguage("en");
-                setTranslationLanguage("ru");
-              }}
-            >
-              EN → RU
-            </button>
-          </div>
-
           <RoomLayoutSwitcher />
 
           <div
@@ -159,7 +126,6 @@ export default function RoomPage() {
           >
             <button className="flex items-center gap-px text-(--color-gray-light)">
               <ParticipantsIcon />
-
               <span className="text-[14px] leading-none">
                 {participantCount}
               </span>
@@ -188,6 +154,8 @@ export default function RoomPage() {
         isCameraOn={roomSession.isCameraOn}
         isMicOn={roomSession.isMicOn}
         isScreenSharing={roomSession.isScreenSharing}
+        nativeLanguage={nativeLanguage}
+        onLanguageChange={setNativeLanguage}
         onToggleCamera={roomSession.toggleCamera}
         onToggleMic={roomSession.toggleMic}
         onToggleScreenShare={roomSession.toggleScreenShare}
