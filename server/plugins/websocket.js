@@ -23,6 +23,8 @@ export default fp(async function (fastify) {
   });
 
   io.on("connection", (socket) => {
+    console.log("[WebSocket] 🔌 New connection, socket.id:", socket.id);
+
     socket.on(
       "join-room",
       async ({
@@ -32,6 +34,14 @@ export default fp(async function (fastify) {
         speechLanguage,
         translationLanguage,
       }) => {
+        console.log("[WebSocket] 📥 'join-room' from:", socket.id, {
+          roomId,
+          userId,
+          userName,
+          speechLanguage,
+          translationLanguage,
+        });
+
         socket.join(roomId);
 
         if (!rooms.has(roomId)) {
@@ -42,10 +52,8 @@ export default fp(async function (fastify) {
 
         room.set(socket.id, {
           socketId: socket.id,
-
           userId,
           userName,
-
           speechLanguage,
           translationLanguage,
         });
@@ -54,12 +62,16 @@ export default fp(async function (fastify) {
           userId,
           userName,
           roomId,
-
           speechLanguage,
           translationLanguage,
         });
 
-        console.log(Array.from(room.values()));
+        console.log("[WebSocket] 👥 Room", roomId, "participants:", Array.from(room.values()).map(u => ({
+          socketId: u.socketId,
+          userName: u.userName,
+          speechLanguage: u.speechLanguage,
+          translationLanguage: u.translationLanguage,
+        })));
 
         await createSession({
           roomId,
@@ -83,9 +95,8 @@ export default fp(async function (fastify) {
           }));
 
         if (existingUsers.length > 0) {
-          socket.emit("existing-users", {
-            users: existingUsers,
-          });
+          console.log("[WebSocket] 📤 Emitting existing-users to:", socket.id);
+          socket.emit("existing-users", { users: existingUsers });
         }
 
         socket.to(roomId).emit("user-connected", {
@@ -97,82 +108,77 @@ export default fp(async function (fastify) {
     );
 
     socket.on("offer", ({ offer, to }) => {
-      io.to(to).emit("offer", {
-        offer,
-        from: socket.id,
-      });
+      io.to(to).emit("offer", { offer, from: socket.id });
     });
 
     socket.on("answer", ({ answer, to }) => {
-      io.to(to).emit("answer", {
-        answer,
-        from: socket.id,
-      });
+      io.to(to).emit("answer", { answer, from: socket.id });
     });
 
     socket.on("ice-candidate", ({ candidate, to }) => {
-      io.to(to).emit("ice-candidate", {
-        candidate,
-        from: socket.id,
-      });
+      io.to(to).emit("ice-candidate", { candidate, from: socket.id });
     });
 
     socket.on("speech", async ({ text }) => {
+      console.log("[WebSocket] 📥 'speech' event from:", socket.id, "text:", text);
+
       try {
         const user = users.get(socket.id);
+        console.log("[WebSocket] 🔍 User lookup:", user ? "FOUND" : "NOT FOUND");
 
         if (!user) {
+          console.error("[WebSocket] ❌ User not found for socket:", socket.id);
           return;
         }
 
-        const translated = await translationService.translate({
+        console.log("[WebSocket] 🌐 Translating:", {
           text,
-
           source: user.speechLanguage,
-
           target: user.translationLanguage,
         });
 
-        console.log(`${user.speechLanguage}:`, text);
-
-        console.log(`${user.translationLanguage}:`, translated);
-
-        socket.emit("subtitle", {
-          originalText: text,
-
-          translatedText: translated,
-
-          sourceLanguage: user.speechLanguage,
-
-          targetLanguage: user.translationLanguage,
+        const translated = await translationService.translate({
+          text,
+          source: user.speechLanguage,
+          target: user.translationLanguage,
         });
+
+        console.log("[WebSocket] ✅ Translation result:", translated);
+
+        const subtitleData = {
+          originalText: text,
+          translatedText: translated,
+          sourceLanguage: user.speechLanguage,
+          targetLanguage: user.translationLanguage,
+        };
+
+        console.log("[WebSocket] 📤 Emitting 'subtitle' to socket:", socket.id);
+        socket.emit("subtitle", subtitleData);
+        console.log("[WebSocket] ✅ 'subtitle' emitted");
       } catch (err) {
-        console.error(err);
+        console.error("[WebSocket] ❌ Error in speech handler:", err);
       }
     });
 
     socket.on("disconnect", async () => {
-      const user = users.get(socket.id);
+      console.log("[WebSocket] 🔌 disconnect, socket.id:", socket.id);
 
+      const user = users.get(socket.id);
       if (!user) {
+        console.log("[WebSocket] ⚠️ No user found for disconnecting socket");
         return;
       }
 
       const { roomId, userId } = user;
 
-      await leaveParticipant({
-        roomId,
-        userId,
-      });
+      await leaveParticipant({ roomId, userId });
 
       if (rooms.has(roomId)) {
         const room = rooms.get(roomId);
-
         room.delete(socket.id);
 
         if (room.size === 0) {
           await finishSession(roomId);
-
           rooms.delete(roomId);
         }
 
