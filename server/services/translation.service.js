@@ -1,56 +1,39 @@
 export class TranslationService {
   constructor() {
     this.baseUrl = process.env.TRANSLATION_SERVICE_URL;
-    console.log("[TranslationService] 🏗️ initialized, baseUrl:", this.baseUrl);
-  }
-
-  async processSpeech(event) {
-    // 1. Получить комнату
-    // 2. Получить говорящего
-    // 3. Сгруппировать участников
-    // 4. Выполнить переводы
-    // 5. Вернуть результат
   }
 
   async translate({ text, source, target }) {
-    console.log("[TranslationService] 🔄 translate() called:", { text, source, target });
-
     if (!this.baseUrl) {
-      console.error("[TranslationService] ❌ TRANSLATION_SERVICE_URL is not set!");
-      throw new Error("TRANSLATION_SERVICE_URL is not configured");
+      console.error("[TranslationService] TRANSLATION_SERVICE_URL not configured");
+      return text;
     }
 
-    try {
-      const url = `${this.baseUrl}/translate`;
-      console.log("[TranslationService] 📡 Fetching:", url);
+    if (!text?.trim()) return text;
+    
+    if (source === target) return text;
 
-      const response = await fetch(url, {
+    try {
+      const response = await fetch(`${this.baseUrl}/translate`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          text,
-          source,
-          target,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, source, target }),
       });
 
-      console.log("[TranslationService] 📥 Response status:", response.status);
-
       if (!response.ok) {
-        const error = await response.text();
-        console.error("[TranslationService] ❌ FastAPI ERROR:", error);
-        throw new Error(`Translation service returned ${response.status}`);
+        console.error(
+          `[TranslationService] Failed: ${source}->${target}, status: ${response.status}`
+        );
+        return text;
       }
 
       const data = await response.json();
-      console.log("[TranslationService] ✅ Response data:", data);
-
-      return data.translation;
+      return data.translation || text;
     } catch (error) {
-      console.error("[TranslationService] ❌ translate() error:", error);
-      throw error;
+      console.error(
+        `[TranslationService] Error (${source}->${target}): ${error.message}`
+      );
+      return text;
     }
   }
 }

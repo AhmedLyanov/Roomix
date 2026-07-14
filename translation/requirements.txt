@@ -3,3 +3,5 @@ uvicorn
 torch
 transformers
 sentencepiece
+faster-whisper
+numpy

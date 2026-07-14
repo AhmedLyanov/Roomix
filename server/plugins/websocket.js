@@ -9,6 +9,7 @@ import {
 } from "../services/session.service.js";
 
 import { translationService } from "../services/translation.service.js";
+import { speechService } from "../services/speech.service.js";
 
 export default fp(async function (fastify) {
   const rooms = new Map();
@@ -20,21 +21,13 @@ export default fp(async function (fastify) {
       origin: process.env.FRONTEND_URL || "*",
       methods: ["GET", "POST"],
     },
+    maxHttpBufferSize: 1e6, 
   });
 
   io.on("connection", (socket) => {
-    console.log("[WebSocket] 🔌 New connection, socket.id:", socket.id);
-
     socket.on(
       "join-room",
       async ({ roomId, userId, userName, nativeLanguage }) => {
-        console.log("[WebSocket] 📥 'join-room' from:", socket.id, {
-          roomId,
-          userId,
-          userName,
-          nativeLanguage,
-        });
-
         socket.join(roomId);
 
         if (!rooms.has(roomId)) {
@@ -56,12 +49,6 @@ export default fp(async function (fastify) {
           roomId,
           nativeLanguage,
         });
-
-        console.log("[WebSocket] 👥 Room", roomId, "participants:", Array.from(room.values()).map((u) => ({
-          socketId: u.socketId,
-          userName: u.userName,
-          nativeLanguage: u.nativeLanguage,
-        })));
 
         await createSession({
           roomId,
@@ -85,7 +72,6 @@ export default fp(async function (fastify) {
           }));
 
         if (existingUsers.length > 0) {
-          console.log("[WebSocket] 📤 Emitting existing-users to:", socket.id);
           socket.emit("existing-users", { users: existingUsers });
         }
 
@@ -109,85 +95,86 @@ export default fp(async function (fastify) {
       io.to(to).emit("ice-candidate", { candidate, from: socket.id });
     });
 
-    socket.on("speech", async ({ text }) => {
-      console.log("[WebSocket] 📥 'speech' event from:", socket.id, "text:", text);
-
+    socket.on("audio-chunk", async (audioChunk) => {
       try {
         const speaker = users.get(socket.id);
-        console.log("[WebSocket] 🔍 Speaker lookup:", speaker ? "FOUND" : "NOT FOUND");
-
-        if (!speaker) {
-          console.error("[WebSocket] ❌ Speaker not found for socket:", socket.id);
-          return;
-        }
+        if (!speaker) return;
 
         const room = rooms.get(speaker.roomId);
-        if (!room) {
-          console.error("[WebSocket] ❌ Room not found:", speaker.roomId);
-          return;
-        }
+        if (!room) return;
 
-        console.log("[WebSocket] 🌐 Speaker language:", speaker.nativeLanguage);
-
-        const targetLanguages = new Set();
-        for (const [sid, participant] of room) {
-          if (sid !== socket.id) {
-            targetLanguages.add(participant.nativeLanguage);
+        await speechService.addAudioChunk(socket.id, audioChunk, speaker, async (result) => {
+          if (!result.text?.trim()) return;
+          
+          // Группируем слушателей по языкам
+          const listenersByLanguage = new Map();
+          
+          for (const [participantId, participant] of room) {
+            if (participantId === socket.id) continue;
+            
+            const lang = participant.nativeLanguage;
+            if (!listenersByLanguage.has(lang)) {
+              listenersByLanguage.set(lang, []);
+            }
+            listenersByLanguage.get(lang).push(participantId);
           }
-        }
+          
 
-        console.log("[WebSocket] 🎯 Target languages:", Array.from(targetLanguages));
-        const translations = new Map();
-        for (const targetLang of targetLanguages) {
-          if (targetLang === speaker.nativeLanguage) {
-            translations.set(targetLang, text);
-            console.log("[WebSocket] 💾 Cached translation for", targetLang, ":", text);
-          } else {
-            console.log("[WebSocket] 🔄 Translating:", text, "from", speaker.nativeLanguage, "to", targetLang);
-            const translated = await translationService.translate({
-              text,
-              source: speaker.nativeLanguage,
-              target: targetLang,
-            });
-            translations.set(targetLang, translated);
-            console.log("[WebSocket] ✅ Translated to", targetLang, ":", translated);
-          }
-        }
-        socket.emit("subtitle", {
-          originalText: text,
-          translatedText: text,
-          speakerId: socket.id,
-          sourceLanguage: speaker.nativeLanguage,
-          targetLanguage: speaker.nativeLanguage,
-        });
-        console.log("[WebSocket] 📤 Sent original subtitle to speaker:", socket.id);
-        for (const [listenerSocketId, listener] of room) {
-          if (listenerSocketId === socket.id) continue;
-
-          const translatedText = translations.get(listener.nativeLanguage) || text;
-
-          io.to(listenerSocketId).emit("subtitle", {
-            originalText: text,
-            translatedText,
+          socket.emit("subtitle", {
+            originalText: result.text,
+            translatedText: result.text,
             speakerId: socket.id,
             sourceLanguage: speaker.nativeLanguage,
-            targetLanguage: listener.nativeLanguage,
+            targetLanguage: speaker.nativeLanguage,
           });
-          console.log("[WebSocket] 📤 Sent translated subtitle to:", listenerSocketId, "language:", listener.nativeLanguage);
-        }
+          
+          // Для каждого языка переводим один раз и отправляем всем
+          for (const [targetLang, listenerIds] of listenersByLanguage) {
+            try {
+              let translatedText = result.text;
+              
+              if (targetLang !== speaker.nativeLanguage) {
+                translatedText = await translationService.translate({
+                  text: result.text,
+                  source: speaker.nativeLanguage,
+                  target: targetLang,
+                });
+              }
+              
+              for (const listenerId of listenerIds) {
+                io.to(listenerId).emit("subtitle", {
+                  originalText: result.text,
+                  translatedText,
+                  speakerId: socket.id,
+                  sourceLanguage: speaker.nativeLanguage,
+                  targetLanguage: targetLang,
+                });
+              }
+            } catch (error) {
+              console.error("[WebSocket] Translation error:", error.message);
+              // Fallback: отправляем оригинал если перевод не удался
+              for (const listenerId of listenerIds) {
+                io.to(listenerId).emit("subtitle", {
+                  originalText: result.text,
+                  translatedText: result.text,
+                  speakerId: socket.id,
+                  sourceLanguage: speaker.nativeLanguage,
+                  targetLanguage: targetLang,
+                });
+              }
+            }
+          }
+        });
       } catch (err) {
-        console.error("[WebSocket] ❌ Error in speech handler:", err);
+        console.error("[WebSocket] Audio chunk error:", err.message);
       }
     });
 
     socket.on("disconnect", async () => {
-      console.log("[WebSocket] 🔌 disconnect, socket.id:", socket.id);
+      speechService.cleanup(socket.id);
 
       const user = users.get(socket.id);
-      if (!user) {
-        console.log("[WebSocket] ⚠️ No user found for disconnecting socket");
-        return;
-      }
+      if (!user) return;
 
       const { roomId, userId } = user;
 

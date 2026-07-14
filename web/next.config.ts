@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins: ["192.168.1.103"],
+
   webpack(config) {
     const fileLoaderRule = config.module.rules.find(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

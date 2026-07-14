@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
 import Peer from "simple-peer";
 
-import { SpeechService } from "@/features/speech-recognition";
+import { AudioSender } from "@/features/audio-sender";
 
 export interface SubtitleData {
   originalText: string;
@@ -29,7 +29,7 @@ export function useRoomSession({
   nativeLanguage,
 }: UseRoomSessionProps) {
   const socketRef = useRef<Socket | null>(null);
-  const speechRef = useRef<SpeechService | null>(null);
+  const audioSenderRef = useRef<AudioSender | null>(null);
   const peersRef = useRef<Map<string, Peer.Instance>>(new Map());
   const remoteStreamsRef = useRef<Map<string, MediaStream>>(new Map());
   const initializedRef = useRef(false);
@@ -52,13 +52,14 @@ export function useRoomSession({
   const screenStreamRef = useRef<MediaStream | null>(null);
   const originalTrackRef = useRef<MediaStreamTrack | null>(null);
 
+  // Таймер для очистки старых субтитров (каждые 5 секунд)
   useEffect(() => {
     const interval = setInterval(() => {
       setSubtitles((prev) => {
         const now = Date.now();
         const next = new Map();
         for (const [key, value] of prev) {
-          if (now - value.timestamp < 10000) {
+          if (now - value.timestamp < 5000) {
             next.set(key, value);
           }
         }
@@ -129,11 +130,20 @@ export function useRoomSession({
     },
     [stream, removePeer],
   );
+
+  // Получение медиапотока
   useEffect(() => {
     let localStream: MediaStream | null = null;
 
     navigator.mediaDevices
-      .getUserMedia({ video: true, audio: true })
+      .getUserMedia({
+        video: true,
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          sampleRate: 16000,
+        },
+      })
       .then((mediaStream) => {
         console.log("[useRoomSession] ✅ Media stream obtained");
         localStream = mediaStream;
@@ -148,6 +158,7 @@ export function useRoomSession({
     };
   }, []);
 
+  // Основная инициализация
   useEffect(() => {
     if (!stream || !userId || !userName) {
       console.log("[useRoomSession] ⏳ Waiting for stream/userId/userName...");
@@ -167,6 +178,7 @@ export function useRoomSession({
       {
         path: "/ws",
         transports: ["websocket"],
+        forceNew: true,
       },
     );
 
@@ -176,22 +188,14 @@ export function useRoomSession({
       console.log("[useRoomSession] ✅ SOCKET CONNECTED, id:", socket.id);
       setSocketId(socket.id);
 
-      if (!speechRef.current) {
+      // Создаем и запускаем AudioSender
+      if (!audioSenderRef.current) {
         console.log(
-          "[useRoomSession] 🎤 Creating SpeechService, language:",
-          nativeLanguage,
+          "[useRoomSession] 🎤 Creating AudioSender from existing MediaStream",
         );
-        speechRef.current = new SpeechService(nativeLanguage);
-
-        speechRef.current.onResult((text) => {
-          console.log("[useRoomSession] 🎤 Speech result:", text);
-          console.log("[useRoomSession] 📤 Emitting 'speech' event");
-          socket.emit("speech", { text });
-          console.log("[useRoomSession] ✅ 'speech' emitted");
-        });
-
-        console.log("[useRoomSession] ▶️ Starting SpeechService...");
-        speechRef.current.start();
+        audioSenderRef.current = new AudioSender(socket);
+        audioSenderRef.current.start(stream);
+        console.log("[useRoomSession] ▶️ AudioSender started");
       }
 
       socket.emit("join-room", {
@@ -279,12 +283,19 @@ export function useRoomSession({
 
     return () => {
       console.log("[useRoomSession] 🧹 CLEANUP");
-      speechRef.current?.stop();
-      speechRef.current = null;
+
+      // Останавливаем AudioSender
+      audioSenderRef.current?.stop();
+      audioSenderRef.current = null;
+
+      // Отключаем сокет
       socket.disconnect();
+
+      // Очищаем WebRTC пиры
       peersRef.current.forEach((peer) => peer.destroy());
       peersRef.current.clear();
       remoteStreamsRef.current.clear();
+
       initializedRef.current = false;
     };
   }, [
@@ -312,6 +323,8 @@ export function useRoomSession({
     stream.getAudioTracks().forEach((track) => {
       track.enabled = enabled;
     });
+    // Синхронизируем состояние с AudioSender
+    audioSenderRef.current?.setMicEnabled(enabled);
     setIsMicOn(enabled);
   };
 
@@ -321,8 +334,10 @@ export function useRoomSession({
 
   const disconnect = useCallback(() => {
     console.log("[useRoomSession] disconnect() called");
-    speechRef.current?.stop();
-    speechRef.current = null;
+
+    audioSenderRef.current?.stop();
+    audioSenderRef.current = null;
+
     socketRef.current?.disconnect();
     peersRef.current.forEach((peer) => peer.destroy());
     peersRef.current.clear();
