@@ -2,7 +2,7 @@ node_modules
 
 .DS_Store
 
-
+bun.lock
 package-lock.json
 
 translation/models/

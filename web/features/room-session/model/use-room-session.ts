@@ -48,32 +48,36 @@ export function useRoomSession({
 
   const [isCameraOn, setIsCameraOn] = useState(true);
   const [isMicOn, setIsMicOn] = useState(true);
+  const [isTranslationEnabled, setIsTranslationEnabled] = useState(false);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
+
   const screenStreamRef = useRef<MediaStream | null>(null);
   const originalTrackRef = useRef<MediaStreamTrack | null>(null);
 
-  // Таймер для очистки старых субтитров (каждые 5 секунд)
   useEffect(() => {
     const interval = setInterval(() => {
       setSubtitles((prev) => {
         const now = Date.now();
         const next = new Map();
+
         for (const [key, value] of prev) {
           if (now - value.timestamp < 5000) {
             next.set(key, value);
           }
         }
+
         return next;
       });
     }, 1000);
+
     return () => clearInterval(interval);
   }, []);
 
   const removePeer = useCallback((socketId: string) => {
-    console.log("[useRoomSession] removePeer:", socketId);
     peersRef.current.get(socketId)?.destroy();
     peersRef.current.delete(socketId);
     remoteStreamsRef.current.delete(socketId);
+
     setRemoteVideos(new Map(remoteStreamsRef.current));
 
     setParticipants((prev) => {
@@ -106,9 +110,15 @@ export function useRoomSession({
         const signalData = data as { type?: string };
 
         if (signalData.type === "offer") {
-          socketRef.current.emit("offer", { offer: data, to: socketId });
+          socketRef.current.emit("offer", {
+            offer: data,
+            to: socketId,
+          });
         } else if (signalData.type === "answer") {
-          socketRef.current.emit("answer", { answer: data, to: socketId });
+          socketRef.current.emit("answer", {
+            answer: data,
+            to: socketId,
+          });
         } else {
           socketRef.current.emit("ice-candidate", {
             candidate: data,
@@ -126,12 +136,12 @@ export function useRoomSession({
       peer.on("error", () => removePeer(socketId));
 
       peersRef.current.set(socketId, peer);
+
       return peer;
     },
     [stream, removePeer],
   );
 
-  // Получение медиапотока
   useEffect(() => {
     let localStream: MediaStream | null = null;
 
@@ -145,12 +155,11 @@ export function useRoomSession({
         },
       })
       .then((mediaStream) => {
-        console.log("[useRoomSession] ✅ Media stream obtained");
         localStream = mediaStream;
         setStream(mediaStream);
       })
       .catch((err) => {
-        console.error("[useRoomSession] ❌ getUserMedia error:", err);
+        console.error("[useRoomSession] getUserMedia error:", err);
       });
 
     return () => {
@@ -158,44 +167,28 @@ export function useRoomSession({
     };
   }, []);
 
-  // Основная инициализация
   useEffect(() => {
-    if (!stream || !userId || !userName) {
-      console.log("[useRoomSession] ⏳ Waiting for stream/userId/userName...");
-      return;
-    }
+    if (!stream || !userId || !userName) return;
 
-    if (initializedRef.current) {
-      console.log("[useRoomSession] ⏭️ Already initialized, skipping");
-      return;
-    }
+    if (initializedRef.current) return;
 
     initializedRef.current = true;
-    console.log("[useRoomSession] 🔌 Initializing socket connection...");
 
-    const socket = io(
-      process.env.NEXT_PUBLIC_SIGNALING_URL || "http://localhost:5000",
-      {
-        path: "/ws",
-        transports: ["websocket"],
-        forceNew: true,
-      },
-    );
+    const socket = io(process.env.NEXT_PUBLIC_SIGNALING_URL!, {
+      path: "/ws",
+      transports: ["websocket"],
+      forceNew: true,
+    });
 
     socketRef.current = socket;
 
     socket.on("connect", () => {
-      console.log("[useRoomSession] ✅ SOCKET CONNECTED, id:", socket.id);
       setSocketId(socket.id);
 
-      // Создаем и запускаем AudioSender
       if (!audioSenderRef.current) {
-        console.log(
-          "[useRoomSession] 🎤 Creating AudioSender from existing MediaStream",
-        );
         audioSenderRef.current = new AudioSender(socket);
         audioSenderRef.current.start(stream);
-        console.log("[useRoomSession] ▶️ AudioSender started");
+        audioSenderRef.current.setTranslationEnabled(false);
       }
 
       socket.emit("join-room", {
@@ -204,31 +197,26 @@ export function useRoomSession({
         userName,
         nativeLanguage,
       });
-      console.log("[useRoomSession] 📤 'join-room' emitted");
     });
 
     socket.on("connect_error", (err) => {
-      console.error("[useRoomSession] ❌ SOCKET CONNECT ERROR:", err.message);
-    });
-
-    socket.on("disconnect", (reason) => {
-      console.log("[useRoomSession] 🔌 SOCKET DISCONNECTED:", reason);
+      console.error("[socket]", err.message);
     });
 
     socket.on("subtitle", (data) => {
-      console.log("[useRoomSession] 📥 RECEIVED 'subtitle':", data);
       setSubtitles((prev) => {
         const next = new Map(prev);
+
         next.set(data.speakerId, {
           ...data,
           timestamp: Date.now(),
         });
+
         return next;
       });
     });
 
     socket.on("existing-users", ({ users }) => {
-      console.log("[useRoomSession] 👥 existing-users:", users.length);
       users.forEach(
         ({ socketId, userName }: { socketId: string; userName: string }) => {
           if (socketId === socket.id) return;
@@ -258,9 +246,11 @@ export function useRoomSession({
 
     socket.on("offer", ({ offer, from }) => {
       let peer = peersRef.current.get(from);
+
       if (!peer) {
         peer = createPeer(from, false);
       }
+
       peer?.signal(offer);
     });
 
@@ -274,25 +264,16 @@ export function useRoomSession({
 
     socket.on("user-disconnected", ({ socketId }) => {
       removePeer(socketId);
-      setSubtitles((prev) => {
-        const next = new Map(prev);
-        next.delete(socketId);
-        return next;
-      });
     });
 
     return () => {
-      console.log("[useRoomSession] 🧹 CLEANUP");
-
-      // Останавливаем AudioSender
       audioSenderRef.current?.stop();
       audioSenderRef.current = null;
 
-      // Отключаем сокет
       socket.disconnect();
 
-      // Очищаем WebRTC пиры
       peersRef.current.forEach((peer) => peer.destroy());
+
       peersRef.current.clear();
       remoteStreamsRef.current.clear();
 
@@ -308,44 +289,59 @@ export function useRoomSession({
     removePeer,
   ]);
 
+  const toggleTranslation = () => {
+    const enabled = !isTranslationEnabled;
+
+    setIsTranslationEnabled(enabled);
+
+    audioSenderRef.current?.setTranslationEnabled(enabled);
+  };
+
   const toggleCamera = () => {
     if (!stream) return;
+
     const enabled = !isCameraOn;
+
     stream.getVideoTracks().forEach((track) => {
       track.enabled = enabled;
     });
+
     setIsCameraOn(enabled);
   };
 
   const toggleMic = () => {
     if (!stream) return;
+
     const enabled = !isMicOn;
+
     stream.getAudioTracks().forEach((track) => {
       track.enabled = enabled;
     });
-    // Синхронизируем состояние с AudioSender
+
     audioSenderRef.current?.setMicEnabled(enabled);
+
     setIsMicOn(enabled);
   };
 
-  const toggleScreenShare = useCallback(() => {
-    console.log("[useRoomSession] toggleScreenShare — not implemented yet");
-  }, []);
+  const toggleScreenShare = useCallback(() => {}, []);
 
   const disconnect = useCallback(() => {
-    console.log("[useRoomSession] disconnect() called");
-
     audioSenderRef.current?.stop();
     audioSenderRef.current = null;
 
     socketRef.current?.disconnect();
+
     peersRef.current.forEach((peer) => peer.destroy());
+
     peersRef.current.clear();
+
     stream?.getTracks().forEach((track) => track.stop());
+
+    setStream(null);
     setRemoteVideos(new Map());
     setParticipants(new Map());
     setSubtitles(new Map());
-    setStream(null);
+
     initializedRef.current = false;
   }, [stream]);
 
@@ -355,11 +351,15 @@ export function useRoomSession({
     participants,
     subtitles,
     socketId,
+
     isCameraOn,
     isMicOn,
+    isTranslationEnabled,
     isScreenSharing,
+
     toggleCamera,
     toggleMic,
+    toggleTranslation,
     toggleScreenShare,
     disconnect,
   };

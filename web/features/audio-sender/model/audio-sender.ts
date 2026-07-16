@@ -1,11 +1,9 @@
 import { Socket } from "socket.io-client";
 
-// Константы
 const SAMPLE_RATE = 16000;
 const BUFFER_SIZE = 4096;
 const CHANNELS = 1;
 const VOICE_ACTIVITY_THRESHOLD = 0.01;
-const CLIENT_BUFFER_MAX_SIZE = 8000; // байт
 const CLIENT_SEND_INTERVAL_MS = 500;
 
 export class AudioSender {
@@ -13,9 +11,14 @@ export class AudioSender {
   private mediaStreamSource: MediaStreamAudioSourceNode | null = null;
   private audioWorkletNode: AudioWorkletNode | null = null;
   private mediaStream: MediaStream | null = null;
+
   private socket: Socket | null = null;
-  private isActive: boolean = false;
-  private isMicEnabled: boolean = true;
+
+  private isActive = false;
+  private isMicEnabled = true;
+
+  private isTranslationEnabled = false;
+
   private chunkBuffer: Int16Array[] = [];
   private sendInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -27,11 +30,13 @@ export class AudioSender {
     this.mediaStream = stream;
 
     try {
-      this.audioContext = new AudioContext({ sampleRate: SAMPLE_RATE });
+      this.audioContext = new AudioContext({
+        sampleRate: SAMPLE_RATE,
+      });
+
       this.mediaStreamSource =
         this.audioContext.createMediaStreamSource(stream);
 
-      // Используем ScriptProcessor как fallback, если AudioWorklet не поддерживается
       if (this.audioContext.audioWorklet) {
         try {
           await this.audioContext.audioWorklet.addModule(
@@ -48,11 +53,16 @@ export class AudioSender {
           );
 
           this.audioWorkletNode.port.onmessage = (event) => {
-            if (!this.isActive || !this.isMicEnabled) return;
+            if (
+              !this.isActive ||
+              !this.isMicEnabled ||
+              !this.isTranslationEnabled
+            ) {
+              return;
+            }
 
             const pcmData = new Int16Array(event.data);
 
-            // Проверка на тишину
             if (this.isSilence(pcmData)) return;
 
             this.chunkBuffer.push(pcmData);
@@ -62,23 +72,30 @@ export class AudioSender {
           this.audioWorkletNode.connect(this.audioContext.destination);
         } catch {
           console.warn(
-            "[AudioSender] AudioWorklet not supported, falling back to ScriptProcessor",
+            "[AudioSender] AudioWorklet failed, using ScriptProcessor",
           );
+
           this.setupScriptProcessor();
         }
       } else {
         this.setupScriptProcessor();
       }
 
-      // Интервал отправки буфера
       this.sendInterval = setInterval(() => {
         this.flushBuffer();
       }, CLIENT_SEND_INTERVAL_MS);
 
       this.isActive = true;
+
+      console.log(
+        "[AudioSender] started, translation:",
+        this.isTranslationEnabled,
+      );
     } catch (error) {
-      console.error("[AudioSender] Error starting:", error);
+      console.error("[AudioSender] Start error:", error);
+
       this.cleanup();
+
       throw error;
     }
   }
@@ -93,9 +110,12 @@ export class AudioSender {
     );
 
     processor.onaudioprocess = (event: AudioProcessingEvent) => {
-      if (!this.isActive || !this.isMicEnabled) return;
+      if (!this.isActive || !this.isMicEnabled || !this.isTranslationEnabled) {
+        return;
+      }
 
       const rawData = event.inputBuffer.getChannelData(0);
+
       const pcmData = this.float32ToInt16(rawData);
 
       if (this.isSilence(pcmData)) return;
@@ -112,40 +132,69 @@ export class AudioSender {
       class AudioProcessor extends AudioWorkletProcessor {
         process(inputs) {
           const input = inputs[0];
+
           if (input && input[0]) {
             const float32Data = input[0];
-            const int16Data = new Int16Array(float32Data.length);
-            
-            for (let i = 0; i < float32Data.length; i++) {
-              const s = Math.max(-1, Math.min(1, float32Data[i]));
-              int16Data[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+            const int16Data = new Int16Array(
+              float32Data.length
+            );
+
+            for (
+              let i = 0;
+              i < float32Data.length;
+              i++
+            ) {
+              const s = Math.max(
+                -1,
+                Math.min(
+                  1,
+                  float32Data[i]
+                )
+              );
+
+              int16Data[i] =
+                s < 0
+                  ? s * 0x8000
+                  : s * 0x7FFF;
             }
-            
-            this.port.postMessage(int16Data.buffer, [int16Data.buffer]);
+
+            this.port.postMessage(
+              int16Data.buffer,
+              [int16Data.buffer]
+            );
           }
+
           return true;
         }
       }
-      registerProcessor('audio-processor', AudioProcessor);
+
+      registerProcessor(
+        "audio-processor",
+        AudioProcessor
+      );
     `;
   }
 
   private isSilence(pcmData: Int16Array): boolean {
     let sumSquares = 0;
+
     for (let i = 0; i < pcmData.length; i++) {
-      const sample = pcmData[i] / 32768.0;
+      const sample = pcmData[i] / 32768;
+
       sumSquares += sample * sample;
     }
+
     const rms = Math.sqrt(sumSquares / pcmData.length);
+
     return rms < VOICE_ACTIVITY_THRESHOLD;
   }
 
   private float32ToInt16(float32Array: Float32Array): Int16Array {
-    const length = float32Array.length;
-    const int16Array = new Int16Array(length);
+    const int16Array = new Int16Array(float32Array.length);
 
-    for (let i = 0; i < length; i++) {
+    for (let i = 0; i < float32Array.length; i++) {
       const sample = Math.max(-1, Math.min(1, float32Array[i]));
+
       int16Array[i] = sample < 0 ? sample * 0x8000 : sample * 0x7fff;
     }
 
@@ -153,26 +202,46 @@ export class AudioSender {
   }
 
   private flushBuffer(): void {
-    if (this.chunkBuffer.length === 0 || !this.socket?.connected) return;
+    if (
+      this.chunkBuffer.length === 0 ||
+      !this.socket?.connected ||
+      !this.isTranslationEnabled
+    ) {
+      return;
+    }
 
     const totalLength = this.chunkBuffer.reduce(
       (sum, chunk) => sum + chunk.length,
       0,
     );
+
     const combined = new Int16Array(totalLength);
 
     let offset = 0;
+
     for (const chunk of this.chunkBuffer) {
       combined.set(chunk, offset);
       offset += chunk.length;
     }
 
     this.socket.emit("audio-chunk", combined.buffer);
+
     this.chunkBuffer = [];
+  }
+
+  setTranslationEnabled(enabled: boolean): void {
+    this.isTranslationEnabled = enabled;
+
+    console.log("[AudioSender] Translation:", enabled ? "ON" : "OFF");
+
+    if (!enabled) {
+      this.chunkBuffer = [];
+    }
   }
 
   setMicEnabled(enabled: boolean): void {
     this.isMicEnabled = enabled;
+
     if (!enabled) {
       this.chunkBuffer = [];
     }
@@ -187,17 +256,25 @@ export class AudioSender {
     }
 
     this.flushBuffer();
+
     this.cleanup();
   }
 
   private cleanup(): void {
     this.audioWorkletNode?.disconnect();
+
     this.audioWorkletNode = null;
+
     this.mediaStreamSource?.disconnect();
+
     this.mediaStreamSource = null;
+
     this.audioContext?.close();
+
     this.audioContext = null;
+
     this.mediaStream = null;
+
     this.chunkBuffer = [];
   }
 }

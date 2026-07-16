@@ -153,11 +153,16 @@ export default function RoomPage() {
       <RoomControl
         isCameraOn={roomSession.isCameraOn}
         isMicOn={roomSession.isMicOn}
+        isTranslationEnabled={roomSession.isTranslationEnabled}
         isScreenSharing={roomSession.isScreenSharing}
+
         nativeLanguage={nativeLanguage}
+
         onLanguageChange={setNativeLanguage}
+
         onToggleCamera={roomSession.toggleCamera}
         onToggleMic={roomSession.toggleMic}
+        onToggleTranslation={roomSession.toggleTranslation}
         onToggleScreenShare={roomSession.toggleScreenShare}
         onLeaveRoom={handleLeaveRoom}
       />
