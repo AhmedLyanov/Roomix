@@ -14,7 +14,7 @@ const __dirname = path.dirname(__filename);
 
 export default async function app(fastify, opts) {
   await fastify.register(cors, {
-    origin: "http://localhost:3000",
+    origin: "*",
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   });
