@@ -3,9 +3,5 @@ export default function RoomLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
-    <main className="bg-(--room-background) h-screen overflow-hidden">
-      {children}
-    </main>
-  );
+  return <main className="h-screen overflow-hidden">{children}</main>;
 }

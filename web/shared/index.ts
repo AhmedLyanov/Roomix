@@ -5,3 +5,4 @@ export * from "./ui/dropdown/dropdown";
 export * from "./ui/input/input";
 export * from "./ui/loading/spinner";
 export * from "./ui/skeleton/skeleton";
+export * from "./ui/badge/badge";

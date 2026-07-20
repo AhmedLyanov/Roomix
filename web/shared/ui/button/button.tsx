@@ -3,7 +3,7 @@ import clsx from "clsx";
 
 import { Typography } from "../typography/typography";
 
-type ButtonVariant = "ghost" | "primary" | "control" | "danger";
+type ButtonVariant = "ghost" | "primary" | "secondary" | "control" | "danger";
 
 interface ButtonProps {
   children?: ReactNode;
@@ -37,6 +37,7 @@ export function Button({
         group
         flex
         items-center
+        justify-center
         gap-3
         transition-all
         duration-200
@@ -47,15 +48,15 @@ export function Button({
 
         variant === "danger" &&
           `
-h-16
-w-16
-justify-center
-rounded-[17px]
+          h-16
+          w-16
+          rounded-[17px]
 
-bg-(--color-close-conference)
+          bg-(--color-close-conference)
 
-hover:opacity-90
-`,
+          hover:opacity-90
+          `,
+
         variant === "ghost" &&
           `
           w-full
@@ -78,11 +79,24 @@ hover:opacity-90
           hover:bg-(--button-primary-bg-hover)
           `,
 
+        variant === "secondary" &&
+          `
+          w-full
+          rounded-xl
+          border
+          border-(--primary-border)
+          px-6
+          py-4
+
+          bg-(--color-surface-contrast)
+
+          hover:bg-(--button-hover-bg)
+          `,
+
         variant === "control" &&
           `
           h-11.25
           w-11.25
-          justify-center
           rounded-full
 
           bg-(--color-neutral-500)
@@ -113,6 +127,12 @@ hover:opacity-90
               text-(--button-primary-text)
               `,
 
+            variant === "secondary" &&
+              `
+              text-(--color-gray-light)
+              group-hover:text-(--color-foreground)
+              `,
+
             variant === "control" &&
               `
               text-(--color-gray-light)
@@ -126,7 +146,11 @@ hover:opacity-90
 
       {children && (
         <Typography
-          variant={variant === "primary" ? "navigation" : "body"}
+          variant={
+            variant === "primary" || variant === "secondary"
+              ? "navigation"
+              : "body"
+          }
           className={clsx(
             `
             transition-colors
@@ -143,6 +167,11 @@ hover:opacity-90
             variant === "primary" &&
               `
               text-(--button-primary-text)
+              `,
+
+            variant === "secondary" &&
+              `
+              text-(--color-foreground)
               `,
 
             variant === "control" &&

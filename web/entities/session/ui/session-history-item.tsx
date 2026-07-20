@@ -24,6 +24,8 @@ export function SessionHistoryItem({
         grid-cols-[36%_36%_18%_10%]
         items-center
         border-b
+        hover:bg-(--table-meta-bg)
+        hover:cursor-pointer
         border-(--primary-border)
         px-9.5
         py-6
