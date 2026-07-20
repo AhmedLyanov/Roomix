@@ -1,13 +1,20 @@
-import { Typography } from "@/shared/";
-import SessionFileItem from "./session-file-item/session-file-item";
+import { Typography } from "@/shared";
+
+import { FileItem } from "@/entities/file";
+
+import { mockFiles } from "./model/mock-files";
+
 export default function SessionFiles() {
   return (
     <div className="rounded-lg bg-(--table-meta-bg) p-5">
-      <Typography variant="caption" className="text-[17px]">
-        Files (5)
+      <Typography variant="caption" className="mb-5 text-[17px]">
+        Files ({mockFiles.length})
       </Typography>
-      <div className="">
-        <SessionFileItem />
+
+      <div className="flex flex-col gap-2">
+        {mockFiles.map((file) => (
+          <FileItem key={file.id} file={file} />
+        ))}
       </div>
     </div>
   );
