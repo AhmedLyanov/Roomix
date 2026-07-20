@@ -1,4 +1,3 @@
-// features/room-session/model/use-room-session.ts
 "use client";
 
 import { useEffect, useCallback } from "react";
@@ -16,13 +15,10 @@ export function useRoomSession({
   userName,
   nativeLanguage,
 }: UseRoomSessionProps) {
-  // 1. Медиа-поток
   const { stream, stopStream } = useMedia();
 
-  // 2. Субтитры
   const { subtitles, setSubtitle, clearSubtitles } = useSubtitles();
 
-  // 3. Peer соединения
   const {
     peersRef,
     remoteVideos,
@@ -32,7 +28,6 @@ export function useRoomSession({
     setOnSignal,
   } = usePeer(stream);
 
-  // 4. Socket.IO соединение
   const {
     audioSenderRef,
     socketId,
@@ -51,12 +46,10 @@ export function useRoomSession({
     setSubtitle,
   });
 
-  // 5. Связываем Peer с Socket
   useEffect(() => {
     setOnSignal(handleSignal);
   }, [handleSignal, setOnSignal]);
 
-  // 6. Управление медиа
   const {
     isCameraOn,
     isMicOn,
@@ -68,7 +61,6 @@ export function useRoomSession({
     toggleScreenShare,
   } = useMediaControls({ stream, audioSenderRef });
 
-  // 7. Полное отключение
   const disconnect = useCallback(() => {
     disconnectSocket();
     destroyAllPeers();

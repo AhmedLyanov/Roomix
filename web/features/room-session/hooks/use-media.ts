@@ -1,4 +1,3 @@
-// features/room-session/hooks/use-media.ts
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
