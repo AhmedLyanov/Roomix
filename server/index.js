@@ -26,18 +26,17 @@ export default async function app(fastify, opts) {
       done(null, body);
     },
   );
+
   await connectDatabase();
 
-  
+  await fastify.register(clerkWebhook);
 
-  fastify.register(clerkWebhook);
-
-  fastify.register(AutoLoad, {
+  await fastify.register(AutoLoad, {
     dir: path.join(__dirname, "plugins"),
     options: opts,
   });
 
-  fastify.register(AutoLoad, {
+  await fastify.register(AutoLoad, {
     dir: path.join(__dirname, "routes"),
     options: opts,
   });

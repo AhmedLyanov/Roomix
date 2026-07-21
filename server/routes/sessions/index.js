@@ -5,38 +5,55 @@ import {
 } from "../../services/session.service.js";
 
 export default async function (fastify) {
-  fastify.get("/:userId", async (request) => {
-    const { userId } = request.params;
+  fastify.get(
+    "/:userId",
+    {
+      preHandler: [fastify.authenticate],
+    },
+    async (request) => {
+      const { userId } = request.params;
 
-    return getSessions(userId);
-  });
-  
+      return getSessions(userId);
+    },
+  );
 
-  fastify.get("/details/:id", async (request, reply) => {
-    const { id } = request.params;
+  fastify.get(
+    "/details/:id",
+    {
+      preHandler: [fastify.authenticate],
+    },
+    async (request, reply) => {
+      const { id } = request.params;
 
-    const session = await getSession(id);
+      const session = await getSession(id);
 
-    if (!session) {
-      return reply.code(404).send({
-        message: "Session not found",
-      });
-    }
+      if (!session) {
+        return reply.code(404).send({
+          message: "Session not found",
+        });
+      }
 
-    return session;
-  });
+      return session;
+    },
+  );
 
-  fastify.delete("/:id", async (request, reply) => {
-    const { id } = request.params;
+  fastify.delete(
+    "/:id",
+    {
+      preHandler: [fastify.authenticate],
+    },
+    async (request, reply) => {
+      const { id } = request.params;
 
-    const session = await deleteSession(id);
+      const session = await deleteSession(id);
 
-    if (!session) {
-      return reply.code(404).send({
-        message: "Session not found",
-      });
-    }
+      if (!session) {
+        return reply.code(404).send({
+          message: "Session not found",
+        });
+      }
 
-    return reply.code(204).send();
-  });
+      return reply.code(204).send();
+    },
+  );
 }
