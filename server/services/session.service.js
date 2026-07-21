@@ -98,6 +98,9 @@ export async function getSessions(userId) {
   });
 }
 
+export async function getSession(sessionId) {
+  return Session.findById(sessionId);
+}
 export async function deleteSession(sessionId) {
   return Session.findByIdAndDelete(sessionId);
 }

@@ -37,7 +37,6 @@ export function Button({
         group
         flex
         items-center
-        justify-center
         gap-3
         transition-all
         duration-200
@@ -51,7 +50,7 @@ export function Button({
           h-16
           w-16
           rounded-[17px]
-
+          justify-center
           bg-(--color-close-conference)
 
           hover:opacity-90
@@ -98,6 +97,7 @@ export function Button({
           h-11.25
           w-11.25
           rounded-full
+          justify-center
 
           bg-(--color-neutral-500)
 

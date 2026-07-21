@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { Typography } from "@/shared";
 import { ActionDeleteIcon, ActionPlayIcon } from "@/shared/icons/24";
 import { formatSessionDuration } from "@/shared/lib/";
@@ -18,7 +20,8 @@ export function SessionHistoryItem({
   onDelete,
 }: SessionHistoryItemProps) {
   return (
-    <div
+    <Link
+      href={`/session/${session._id}`}
       className="
         grid
         grid-cols-[36%_36%_18%_10%]
@@ -57,12 +60,17 @@ export function SessionHistoryItem({
         </button>
 
         <button
-          onClick={() => onDelete(session._id)}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            onDelete(session._id);
+          }}
           className="transition-opacity hover:opacity-70"
         >
           <ActionDeleteIcon />
         </button>
       </div>
-    </div>
+    </Link>
   );
 }

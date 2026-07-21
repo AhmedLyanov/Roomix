@@ -15,3 +15,13 @@ export interface Session {
     userName: string;
   }[];
 }
+export interface Participant {
+  _id: string;
+
+  userId: string;
+  userName: string;
+  language: string;
+
+  joinedAt: string;
+  leftAt?: string;
+}

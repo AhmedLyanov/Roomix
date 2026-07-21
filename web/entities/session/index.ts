@@ -4,4 +4,5 @@ export * from "./api/delete-session";
 export * from "./model/types";
 export * from "./model/use-sessions";
 export * from "./model/use-delete-session";
+export * from "./model/use-session";
 export * from "./ui/session-history-item";
