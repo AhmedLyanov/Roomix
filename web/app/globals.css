@@ -18,6 +18,7 @@
   --color-accent-hover: #5671ff;
   --color-border-strong: rgba(68, 69, 76, 0.06);
   --color-danger: #ff616a;
+  --color-chat-input: #1e1f27;
 
   --room-header-border: rgba(68, 69, 76, 0.06);
   --input-color: var(--color-surface-muted);

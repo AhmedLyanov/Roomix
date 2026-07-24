@@ -9,6 +9,7 @@ import {
   ShareLink,
   useRoomSession,
   RoomLayoutSwitcher,
+  RoomSidebar,
 } from "@/features";
 
 import { Button } from "@/shared";
@@ -18,10 +19,6 @@ import {
   QuestionIcon,
   LightningIcon,
   NextIcon,
-  ParticipantsIcon,
-  ChatIcon,
-  MagicIcon,
-  RoomPluginsIcon,
 } from "@/shared/icons/24";
 
 import { RoomClient } from "@/widgets/room";
@@ -58,6 +55,18 @@ export default function RoomPage() {
   const handleLeaveRoom = () => {
     roomSession.disconnect();
     window.location.replace("/");
+  };
+
+  const handleParticipantsClick = () => {
+    console.log("Open participants list");
+  };
+
+  const handleMagicClick = () => {
+    console.log("Open magic panel");
+  };
+
+  const handlePluginsClick = () => {
+    console.log("Open plugins");
   };
 
   return (
@@ -107,42 +116,12 @@ export default function RoomPage() {
         <div className="relative h-full px-31 py-10.75">
           <RoomLayoutSwitcher />
 
-          <div
-            className="
-              absolute
-              top-22.5
-              right-0
-              z-20
-              flex
-              flex-col
-              items-center
-              justify-between
-              gap-7
-              rounded-l-[20px]
-              bg-(--room-navigation-bg)
-              px-3.5
-              py-5.75
-            "
-          >
-            <button className="flex items-center gap-px text-(--color-gray-light)">
-              <ParticipantsIcon />
-              <span className="text-[14px] leading-none">
-                {participantCount}
-              </span>
-            </button>
-
-            <button className="text-(--color-gray-light)">
-              <ChatIcon />
-            </button>
-
-            <button className="text-(--color-gray-light)">
-              <MagicIcon />
-            </button>
-
-            <button className="text-(--color-gray-light)">
-              <RoomPluginsIcon />
-            </button>
-          </div>
+          <RoomSidebar
+            participantCount={participantCount}
+            onParticipantsClick={handleParticipantsClick}
+            onMagicClick={handleMagicClick}
+            onPluginsClick={handlePluginsClick}
+          />
 
           <main className="h-full">
             <RoomClient roomSession={roomSession} userName={userName} />
@@ -155,11 +134,8 @@ export default function RoomPage() {
         isMicOn={roomSession.isMicOn}
         isTranslationEnabled={roomSession.isTranslationEnabled}
         isScreenSharing={roomSession.isScreenSharing}
-
         nativeLanguage={nativeLanguage}
-
         onLanguageChange={setNativeLanguage}
-
         onToggleCamera={roomSession.toggleCamera}
         onToggleMic={roomSession.toggleMic}
         onToggleTranslation={roomSession.toggleTranslation}
