@@ -75,6 +75,21 @@ export function useSocket({
     }
   }, []);
 
+  const sendMessage = useCallback(
+    (text: string) => {
+      if (!socketRef.current) return;
+      if (!text.trim()) return;
+
+      socketRef.current.emit("chat:send", {
+        roomId,
+        senderId: userId,
+        senderName: userName,
+        text: text.trim(),
+      });
+    },
+    [roomId, userId, userName],
+  );
+
   useEffect(() => {
     if (!stream || !userId || !userName) return;
 
@@ -211,5 +226,6 @@ export function useSocket({
     participants,
     handleSignal,
     disconnectSocket,
+    sendMessage,
   };
 }

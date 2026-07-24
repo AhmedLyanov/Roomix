@@ -1,67 +1,66 @@
 import { NextIcon } from "@/shared/icons/24";
 import { Typography } from "@/shared";
-
+import { useEffect, useState } from "react";
+import { RoomMessage, getRoomMessages } from "@/entities/message";
 import { ChatMessage } from "./chat-message";
 
+import { Socket } from "socket.io-client";
+
 interface RoomChatProps {
+  roomId: string;
   isOpen: boolean;
   onClose: () => void;
-}
 
-interface Message {
-  id: string;
-  user: {
-    name: string;
-    avatarColor: string;
+  roomSession: {
+    socketRef: React.MutableRefObject<Socket | null>;
+    sendMessage: (text: string) => void;
   };
-  text: string;
-  timestamp?: string;
 }
 
-const mockMessages: Message[] = [
-  {
-    id: "1",
-    user: {
-      name: "Victor Wolf",
-      avatarColor: "bg-red-600",
-    },
-    text: "Amazing, greetings from Italy!",
-  },
-  {
-    id: "2",
-    user: {
-      name: "Sarah Johnson",
-      avatarColor: "bg-blue-600",
-    },
-    text: "Hello everyone! Great to be here.",
-  },
-  {
-    id: "3",
-    user: {
-      name: "Michael Chen",
-      avatarColor: "bg-green-600",
-    },
-    text: "This is awesome! 🎉",
-  },
-  {
-    id: "4",
-    user: {
-      name: "Emma Wilson",
-      avatarColor: "bg-purple-600",
-    },
-    text: "Can't wait to start the session!",
-  },
-  {
-    id: "5",
-    user: {
-      name: "Victor Wolf",
-      avatarColor: "bg-red-600",
-    },
-    text: "Amazing, greetings from Italy!",
-  },
-];
+export default function RoomChat({
+  roomId,
+  isOpen,
+  onClose,
+  roomSession,
+}: RoomChatProps) {
+  const [messages, setMessages] = useState<RoomMessage[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [text, setText] = useState("");
 
-export default function RoomChat({ isOpen, onClose }: RoomChatProps) {
+  useEffect(() => {
+    if (!roomId || !isOpen) return;
+
+    const loadMessages = async () => {
+      try {
+        setLoading(true);
+        const data = await getRoomMessages(roomId);
+        setMessages(data);
+      } catch (error) {
+        console.error("Failed to load messages:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadMessages();
+  }, [roomId, isOpen]);
+
+  useEffect(() => {
+    if (!roomSession.socketRef.current) return;
+
+    const socket = roomSession.socketRef.current;
+
+    const handleNewMessage = (message: RoomMessage) => {
+      setMessages((prev) => [...prev, message]);
+    };
+
+    socket.on("chat:new", handleNewMessage);
+
+    return () => {
+      socket.off("chat:new", handleNewMessage);
+    };
+  }, [roomSession.socketRef]);
+
   if (!isOpen) return null;
 
   return (
@@ -72,7 +71,7 @@ export default function RoomChat({ isOpen, onClose }: RoomChatProps) {
             Live chat
           </Typography>
           <Typography className="ml-6" variant="body">
-            Participants ({mockMessages.length})
+            Participants ({messages.length})
           </Typography>
         </div>
         <button onClick={onClose}>
@@ -80,14 +79,36 @@ export default function RoomChat({ isOpen, onClose }: RoomChatProps) {
         </button>
       </div>
       <div className="flex-1 overflow-y-auto py-4">
-        <div className="space-y-4">
-          {mockMessages.map((message) => (
-            <ChatMessage key={message.id} message={message} />
-          ))}
-        </div>
+        {loading ? (
+          <div className="flex items-center justify-center h-full">
+            <Typography variant="body" className="text-(--color-gray-light)">
+              Loading messages...
+            </Typography>
+          </div>
+        ) : messages.length === 0 ? (
+          <div className="flex items-center justify-center h-full">
+            <Typography variant="body" className="text-(--color-gray-light)">
+              No messages yet
+            </Typography>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {messages.map((message) => (
+              <ChatMessage key={message._id} message={message} />
+            ))}
+          </div>
+        )}
       </div>
       <div className="bg-(--color-chat-input) rounded-[17px] border-t border-(--color-surface-strong) border-opacity-15 flex-shrink-0">
         <input
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              roomSession.sendMessage(text);
+              setText("");
+            }
+          }}
           type="text"
           placeholder="Write your message"
           className="w-full h-full py-5.25 px-2 outline-0 text-(--color-text) bg-transparent"

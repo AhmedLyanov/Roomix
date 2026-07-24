@@ -117,7 +117,10 @@ export default function RoomPage() {
           <RoomLayoutSwitcher />
 
           <RoomSidebar
+            roomId={roomId}
             participantCount={participantCount}
+            roomSession={roomSession}
+
             onParticipantsClick={handleParticipantsClick}
             onMagicClick={handleMagicClick}
             onPluginsClick={handlePluginsClick}

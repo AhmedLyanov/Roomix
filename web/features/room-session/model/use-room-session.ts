@@ -30,10 +30,12 @@ export function useRoomSession({
 
   const {
     audioSenderRef,
+    socketRef,
     socketId,
     participants,
     handleSignal,
     disconnectSocket,
+    sendMessage,
   } = useSocket({
     roomId,
     userId,
@@ -73,7 +75,10 @@ export function useRoomSession({
     remoteVideos,
     participants,
     subtitles,
+
     socketId,
+    socketRef,
+    sendMessage,
 
     isCameraOn,
     isMicOn,
@@ -84,6 +89,7 @@ export function useRoomSession({
     toggleMic,
     toggleTranslation,
     toggleScreenShare,
+
     disconnect,
   };
 }

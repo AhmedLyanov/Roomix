@@ -1,0 +1,8 @@
+import { api } from "@/shared/api/client";
+import { RoomMessage } from "../model/types";
+
+export async function getRoomMessages(roomId: string): Promise<RoomMessage[]> {
+  const { data } = await api.get<RoomMessage[]>(`/chat/${roomId}/messages`);
+
+  return data;
+}

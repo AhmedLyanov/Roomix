@@ -10,6 +10,7 @@ import {
 
 import { translationService } from "../services/translation.service.js";
 import { speechService } from "../services/speech.service.js";
+import RoomMessage from "../models/RoomMessage.model.js";
 
 export default fp(async function (fastify) {
   const rooms = new Map();
@@ -21,7 +22,7 @@ export default fp(async function (fastify) {
       origin: process.env.FRONTEND_URL || "*",
       methods: ["GET", "POST"],
     },
-    maxHttpBufferSize: 1e6, 
+    maxHttpBufferSize: 1e6,
   });
 
   io.on("connection", (socket) => {
@@ -95,6 +96,22 @@ export default fp(async function (fastify) {
       io.to(to).emit("ice-candidate", { candidate, from: socket.id });
     });
 
+    socket.on("chat:send", async (payload) => {
+      try {
+        const message = await RoomMessage.create({
+          roomId: payload.roomId,
+          senderId: payload.senderId,
+          senderName: payload.senderName,
+          text: payload.text,
+          type: "text",
+        });
+
+        io.to(payload.roomId).emit("chat:new", message);
+      } catch (error) {
+        console.error(error);
+      }
+    });
+
     socket.on("audio-chunk", async (audioChunk) => {
       try {
         const speaker = users.get(socket.id);
@@ -103,68 +120,72 @@ export default fp(async function (fastify) {
         const room = rooms.get(speaker.roomId);
         if (!room) return;
 
-        await speechService.addAudioChunk(socket.id, audioChunk, speaker, async (result) => {
-          if (!result.text?.trim()) return;
-          
-          // Группируем слушателей по языкам
-          const listenersByLanguage = new Map();
-          
-          for (const [participantId, participant] of room) {
-            if (participantId === socket.id) continue;
-            
-            const lang = participant.nativeLanguage;
-            if (!listenersByLanguage.has(lang)) {
-              listenersByLanguage.set(lang, []);
-            }
-            listenersByLanguage.get(lang).push(participantId);
-          }
-          
+        await speechService.addAudioChunk(
+          socket.id,
+          audioChunk,
+          speaker,
+          async (result) => {
+            if (!result.text?.trim()) return;
 
-          socket.emit("subtitle", {
-            originalText: result.text,
-            translatedText: result.text,
-            speakerId: socket.id,
-            sourceLanguage: speaker.nativeLanguage,
-            targetLanguage: speaker.nativeLanguage,
-          });
-          
-          // Для каждого языка переводим один раз и отправляем всем
-          for (const [targetLang, listenerIds] of listenersByLanguage) {
-            try {
-              let translatedText = result.text;
-              
-              if (targetLang !== speaker.nativeLanguage) {
-                translatedText = await translationService.translate({
-                  text: result.text,
-                  source: speaker.nativeLanguage,
-                  target: targetLang,
-                });
+            // Группируем слушателей по языкам
+            const listenersByLanguage = new Map();
+
+            for (const [participantId, participant] of room) {
+              if (participantId === socket.id) continue;
+
+              const lang = participant.nativeLanguage;
+              if (!listenersByLanguage.has(lang)) {
+                listenersByLanguage.set(lang, []);
               }
-              
-              for (const listenerId of listenerIds) {
-                io.to(listenerId).emit("subtitle", {
-                  originalText: result.text,
-                  translatedText,
-                  speakerId: socket.id,
-                  sourceLanguage: speaker.nativeLanguage,
-                  targetLanguage: targetLang,
-                });
-              }
-            } catch (error) {
-              console.error("[WebSocket] Translation error:", error.message);
-              // Fallback: отправляем оригинал если перевод не удался
-              for (const listenerId of listenerIds) {
-                io.to(listenerId).emit("subtitle", {
-                  originalText: result.text,
-                  translatedText: result.text,
-                  speakerId: socket.id,
-                  sourceLanguage: speaker.nativeLanguage,
-                  targetLanguage: targetLang,
-                });
+              listenersByLanguage.get(lang).push(participantId);
+            }
+
+            socket.emit("subtitle", {
+              originalText: result.text,
+              translatedText: result.text,
+              speakerId: socket.id,
+              sourceLanguage: speaker.nativeLanguage,
+              targetLanguage: speaker.nativeLanguage,
+            });
+
+            // Для каждого языка переводим один раз и отправляем всем
+            for (const [targetLang, listenerIds] of listenersByLanguage) {
+              try {
+                let translatedText = result.text;
+
+                if (targetLang !== speaker.nativeLanguage) {
+                  translatedText = await translationService.translate({
+                    text: result.text,
+                    source: speaker.nativeLanguage,
+                    target: targetLang,
+                  });
+                }
+
+                for (const listenerId of listenerIds) {
+                  io.to(listenerId).emit("subtitle", {
+                    originalText: result.text,
+                    translatedText,
+                    speakerId: socket.id,
+                    sourceLanguage: speaker.nativeLanguage,
+                    targetLanguage: targetLang,
+                  });
+                }
+              } catch (error) {
+                console.error("[WebSocket] Translation error:", error.message);
+                // Fallback: отправляем оригинал если перевод не удался
+                for (const listenerId of listenerIds) {
+                  io.to(listenerId).emit("subtitle", {
+                    originalText: result.text,
+                    translatedText: result.text,
+                    speakerId: socket.id,
+                    sourceLanguage: speaker.nativeLanguage,
+                    targetLanguage: targetLang,
+                  });
+                }
               }
             }
-          }
-        });
+          },
+        );
       } catch (err) {
         console.error("[WebSocket] Audio chunk error:", err.message);
       }

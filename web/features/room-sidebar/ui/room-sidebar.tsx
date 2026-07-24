@@ -8,6 +8,7 @@ import {
 } from "@/shared/icons/24";
 
 import RoomChat from "./room-chat/room-chat";
+import { useRoomSession } from "@/features/room/model/use-room-session";
 
 interface SidebarItem {
   id: string;
@@ -19,7 +20,9 @@ interface SidebarItem {
 }
 
 interface RoomSidebarProps {
+  roomId: string;
   participantCount: number;
+  roomSession: ReturnType<typeof useRoomSession>;
   onParticipantsClick?: () => void;
   onMagicClick?: () => void;
   onPluginsClick?: () => void;
@@ -27,7 +30,9 @@ interface RoomSidebarProps {
 }
 
 export const RoomSidebar = ({
+  roomId,
   participantCount,
+  roomSession,
   onParticipantsClick,
   onMagicClick,
   onPluginsClick,
@@ -114,7 +119,12 @@ export const RoomSidebar = ({
         ))}
       </div>
 
-      <RoomChat isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+      <RoomChat
+        roomId={roomId}
+        roomSession={roomSession}
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+      />
     </>
   );
 };
