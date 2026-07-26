@@ -27,13 +27,16 @@ export interface UseRoomSessionProps {
 
 export interface Participant {
   userName: string;
+  userAvatar?: string;
+  cameraEnabled: boolean;
 }
 
 export interface UserData {
   socketId: string;
   userName: string;
+  userAvatar?: string;
+  cameraEnabled: boolean;
 }
-
 export interface ExistingUsersPayload {
   users: UserData[];
 }
@@ -56,8 +59,9 @@ export interface IceCandidatePayload {
 export interface UserConnectedPayload {
   socketId: string;
   userName: string;
+  userAvatar?: string;
+  cameraEnabled: boolean;
 }
-
 export interface UserDisconnectedPayload {
   socketId: string;
 }
@@ -76,4 +80,8 @@ export interface SignalData {
   type: SignalType;
   data: Peer.SignalData;
   to: string;
+}
+export interface CameraUpdatePayload {
+  socketId: string;
+  enabled: boolean;
 }

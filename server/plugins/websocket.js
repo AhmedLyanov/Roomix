@@ -43,6 +43,7 @@ export default fp(async function (fastify) {
           userId,
           userName,
           nativeLanguage,
+          cameraEnabled: true,
           userAvatar,
         });
 
@@ -77,8 +78,9 @@ export default fp(async function (fastify) {
           .map((participant) => ({
             socketId: participant.socketId,
             userName: participant.userName,
+            userAvatar: participant.userAvatar,
+            cameraEnabled: participant.cameraEnabled,
           }));
-
         if (existingUsers.length > 0) {
           socket.emit("existing-users", { users: existingUsers });
         }
@@ -86,6 +88,9 @@ export default fp(async function (fastify) {
         socket.to(roomId).emit("user-connected", {
           socketId: socket.id,
           userId,
+          cameraEnabled: true,
+          userAvatar,
+
           userName,
         });
       },
@@ -216,6 +221,23 @@ export default fp(async function (fastify) {
         roomId,
         userId,
         language,
+      });
+    });
+
+    socket.on("camera:update", ({ roomId, enabled }) => {
+      const room = rooms.get(roomId);
+
+      if (!room) return;
+
+      const participant = room.get(socket.id);
+
+      if (!participant) return;
+
+      participant.cameraEnabled = enabled;
+
+      socket.to(roomId).emit("camera:update", {
+        socketId: socket.id,
+        enabled,
       });
     });
 

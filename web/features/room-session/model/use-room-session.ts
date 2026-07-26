@@ -38,6 +38,7 @@ export function useRoomSession({
     disconnectSocket,
     sendMessage,
     updateLanguage,
+    updateCamera,
   } = useSocket({
     roomId,
     userId,
@@ -64,7 +65,11 @@ export function useRoomSession({
     toggleMic,
     toggleTranslation,
     toggleScreenShare,
-  } = useMediaControls({ stream, audioSenderRef });
+  } = useMediaControls({
+    stream,
+    audioSenderRef,
+    onCameraChange: updateCamera,
+  });
 
   const disconnect = useCallback(() => {
     disconnectSocket();
@@ -72,7 +77,6 @@ export function useRoomSession({
     stopStream();
     clearSubtitles();
   }, [disconnectSocket, destroyAllPeers, stopStream, clearSubtitles]);
-
   return {
     stream,
     remoteVideos,

@@ -24,6 +24,7 @@ import {
 import { RoomClient } from "@/widgets/room";
 
 export default function RoomPage() {
+  // console.count("RoomPage");
   const params = useParams();
   const roomId = params.roomId as string;
   const { user, isLoaded } = useUser();
@@ -131,7 +132,11 @@ export default function RoomPage() {
           />
 
           <main className="h-full">
-            <RoomClient roomSession={roomSession} userName={userName} />
+            <RoomClient
+              roomSession={roomSession}
+              userName={userName}
+              userAvatar={userAvatar}
+            />
           </main>
         </div>
       </div>

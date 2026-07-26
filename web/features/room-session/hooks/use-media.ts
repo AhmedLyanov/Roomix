@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 
 export function useMedia() {
   const [stream, setStream] = useState<MediaStream | null>(null);
-
+  const [isCameraEnabled, setIsCameraEnabled] = useState(true);
   useEffect(() => {
     let localStream: MediaStream | null = null;
 
@@ -38,5 +38,7 @@ export function useMedia() {
   return {
     stream,
     stopStream,
+    isCameraEnabled,
+    setIsCameraEnabled,
   };
 }

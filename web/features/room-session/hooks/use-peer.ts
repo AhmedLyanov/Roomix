@@ -74,7 +74,6 @@ export function usePeer(stream: MediaStream | null) {
     remoteStreamsRef.current.clear();
     setRemoteVideos(new Map());
   }, []);
-
   return {
     peersRef,
     remoteVideos,

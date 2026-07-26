@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FullScreenIcon } from "@/shared/icons/24";
 import { Typography } from "@/shared";
 
@@ -9,11 +9,24 @@ interface Props {
   userName: string;
   width: number;
   height: number;
+
+  cameraEnabled: boolean;
+  avatar?: string;
+
+  onFullscreen: () => void;
 }
 
-export function RemoteVideoCard({ stream, userName, width, height }: Props) {
+export function RemoteVideoCard({
+  stream,
+  userName,
+  width,
+  height,
+  cameraEnabled,
+  avatar,
+  onFullscreen,
+}: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     if (!videoRef.current || !stream) {
@@ -22,19 +35,27 @@ export function RemoteVideoCard({ stream, userName, width, height }: Props) {
 
     videoRef.current.srcObject = stream;
   }, [stream]);
-  const handleFullscreen = async () => {
-    if (!containerRef.current) return;
 
-    if (document.fullscreenElement) {
-      await document.exitFullscreen();
-    } else {
-      await containerRef.current.requestFullscreen();
-    }
+  // Логируем для диагностики
+  useEffect(() => {
+    console.log("[RemoteVideoCard] avatar:", avatar);
+    console.log("[RemoteVideoCard] userName:", userName);
+    console.log("[RemoteVideoCard] cameraEnabled:", cameraEnabled);
+  }, [avatar, userName, cameraEnabled]);
+
+  const handleImageError = () => {
+    console.error("[RemoteVideoCard] Failed to load avatar image:", avatar);
+    setImageError(true);
+  };
+
+  // Функция для получения инициалов
+  const getInitials = (name: string) => {
+    if (!name) return "?";
+    return name[0]?.toUpperCase() || "?";
   };
 
   return (
     <div
-      ref={containerRef}
       className="
         relative
         overflow-hidden
@@ -46,16 +67,68 @@ export function RemoteVideoCard({ stream, userName, width, height }: Props) {
         height,
       }}
     >
-      <video
-        ref={videoRef}
-        autoPlay
-        playsInline
-        className="
-          h-full
-          w-full
-          object-cover
-        "
-      />
+      <div className="relative h-full w-full">
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          className={`
+            h-full
+            w-full
+            object-cover
+            ${cameraEnabled ? "block" : "hidden"}
+          `}
+        />
+
+        {!cameraEnabled && (
+          <div
+            className="
+              absolute
+              inset-0
+              flex
+              h-full
+              w-full
+              flex-col
+              items-center
+              justify-center
+              bg-[#243B6B]
+            "
+          >
+            {avatar && !imageError ? (
+              <img
+                src={avatar}
+                alt={userName}
+                className="mb-4 h-24 w-24 rounded-full object-cover"
+                onError={handleImageError}
+                referrerPolicy="no-referrer"
+                crossOrigin="anonymous"
+              />
+            ) : (
+              <div
+                className="
+                  mb-4
+                  flex
+                  h-24
+                  w-24
+                  items-center
+                  justify-center
+                  rounded-full
+                  bg-white/15
+                  text-3xl
+                  font-semibold
+                  text-white
+                "
+              >
+                {getInitials(userName)}
+              </div>
+            )}
+
+            <Typography variant="caption" className="text-lg text-white">
+              {userName}
+            </Typography>
+          </div>
+        )}
+      </div>
 
       <div
         className="
@@ -84,7 +157,7 @@ export function RemoteVideoCard({ stream, userName, width, height }: Props) {
           transition
           hover:opacity-80
         "
-        onClick={handleFullscreen}
+        onClick={onFullscreen}
       >
         <FullScreenIcon />
       </button>

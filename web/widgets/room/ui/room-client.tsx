@@ -61,12 +61,23 @@ function SubtitleBubble({ subtitle }: SubtitleBubbleProps) {
 
 interface Props {
   userName?: string;
+  userAvatar?: string;
   roomSession: ReturnType<typeof useRoomSession>;
 }
 
-export default function RoomClient({ userName, roomSession }: Props) {
-  const { stream, remoteVideos, participants, subtitles, socketId } =
-    roomSession;
+export default function RoomClient({
+  userName,
+  userAvatar,
+  roomSession,
+}: Props) {
+  const {
+    stream,
+    remoteVideos,
+    participants,
+    subtitles,
+    socketId,
+    isCameraOn,
+  } = roomSession;
 
   const { layoutMode } = useRoomLayoutStore();
 
@@ -108,6 +119,14 @@ export default function RoomClient({ userName, roomSession }: Props) {
               userName={userName}
               width={mainVideo.width}
               height={mainVideo.height}
+              avatar={userAvatar}
+              cameraEnabled={isCameraOn ?? true}
+              onFullscreen={() =>
+                toggleFullscreen(
+                  document.getElementById("local-video"),
+                  "local",
+                )
+              }
             />
             <SubtitleBubble
               key={
@@ -130,6 +149,8 @@ export default function RoomClient({ userName, roomSession }: Props) {
                   userName={
                     participants.get(id)?.userName ?? `User ${id.slice(0, 5)}`
                   }
+                  avatar={participants.get(id)?.userAvatar}
+                  cameraEnabled={participants.get(id)?.cameraEnabled ?? true}
                   onFullscreen={() =>
                     toggleFullscreen(document.getElementById(`video-${id}`), id)
                   }
@@ -166,6 +187,11 @@ export default function RoomClient({ userName, roomSession }: Props) {
             userName={userName}
             width={mainVideo.width}
             height={mainVideo.height}
+            avatar={userAvatar}
+            cameraEnabled={isCameraOn ?? true}
+            onFullscreen={() =>
+              toggleFullscreen(document.getElementById("local-video"), "local")
+            }
           />
           <SubtitleBubble
             key={
@@ -196,6 +222,8 @@ export default function RoomClient({ userName, roomSession }: Props) {
                   userName={
                     participants.get(id)?.userName ?? `User ${id.slice(0, 5)}`
                   }
+                  avatar={participants.get(id)?.userAvatar}
+                  cameraEnabled={participants.get(id)?.cameraEnabled ?? true}
                   onFullscreen={() =>
                     toggleFullscreen(document.getElementById(`video-${id}`), id)
                   }
@@ -231,6 +259,11 @@ export default function RoomClient({ userName, roomSession }: Props) {
           userName={userName}
           width={mainVideo.width}
           height={mainVideo.height}
+          avatar={userAvatar}
+          cameraEnabled={isCameraOn ?? true}
+          onFullscreen={() =>
+            toggleFullscreen(document.getElementById("local-video"), "local")
+          }
         />
         <SubtitleBubble
           key={

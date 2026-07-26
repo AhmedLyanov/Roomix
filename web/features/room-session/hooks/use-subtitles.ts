@@ -10,6 +10,10 @@ export function useSubtitles() {
   useEffect(() => {
     const interval = setInterval(() => {
       setSubtitles((prev) => {
+        if (prev.size === 0) {
+          return prev;
+        }
+
         const now = Date.now();
         const next = new Map();
 
@@ -17,6 +21,10 @@ export function useSubtitles() {
           if (now - value.timestamp < 5000) {
             next.set(key, value);
           }
+        }
+
+        if (next.size === prev.size) {
+          return prev;
         }
 
         return next;

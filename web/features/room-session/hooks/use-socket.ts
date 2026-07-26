@@ -104,6 +104,17 @@ export function useSocket({
     [roomId, userId],
   );
 
+  const updateCamera = useCallback(
+    (enabled: boolean) => {
+      socketRef.current?.emit("camera:update", {
+        roomId,
+        userId,
+        enabled,
+      });
+    },
+    [roomId, userId],
+  );
+
   useEffect(() => {
     if (!stream || !userId || !userName) return;
 
@@ -148,13 +159,29 @@ export function useSocket({
     });
 
     socket.on("existing-users", ({ users }: ExistingUsersPayload) => {
+      console.log("[existing-users] received:", users);
+
       users.forEach(
-        ({ socketId, userName }: { socketId: string; userName: string }) => {
+        ({
+          socketId,
+          userName,
+          userAvatar,
+          cameraEnabled,
+        }: {
+          socketId: string;
+          userName: string;
+          userAvatar?: string;
+          cameraEnabled: boolean;
+        }) => {
           if (socketId === socket.id) return;
 
           setParticipants((prev) => {
             const next = new Map(prev);
-            next.set(socketId, { userName });
+            next.set(socketId, {
+              userName,
+              userAvatar,
+              cameraEnabled,
+            });
             return next;
           });
 
@@ -165,18 +192,44 @@ export function useSocket({
 
     socket.on(
       "user-connected",
-      ({ socketId, userName }: UserConnectedPayload) => {
+      ({
+        socketId,
+        userName,
+        userAvatar,
+        cameraEnabled,
+      }: UserConnectedPayload) => {
         if (socketId === socket.id) return;
 
         setParticipants((prev) => {
           const next = new Map(prev);
-          next.set(socketId, { userName });
+          next.set(socketId, {
+            userName,
+            userAvatar,
+            cameraEnabled,
+          });
           return next;
         });
 
         createPeer(socketId, false);
       },
     );
+
+    socket.on("camera:update", ({ socketId, enabled }) => {
+      setParticipants((prev) => {
+        const next = new Map(prev);
+
+        const participant = next.get(socketId);
+
+        if (!participant) return prev;
+
+        next.set(socketId, {
+          ...participant,
+          cameraEnabled: enabled,
+        });
+
+        return next;
+      });
+    });
 
     socket.on("offer", ({ offer, from }: OfferPayload) => {
       let peer = peersRef.current.get(from);
@@ -242,6 +295,7 @@ export function useSocket({
     handleSignal,
     disconnectSocket,
     sendMessage,
+    updateCamera,
     updateLanguage,
   };
 }

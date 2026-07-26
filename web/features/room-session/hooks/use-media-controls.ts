@@ -6,11 +6,13 @@ import type { AudioSender } from "@/features/audio-sender";
 interface UseMediaControlsProps {
   stream: MediaStream | null;
   audioSenderRef: React.MutableRefObject<AudioSender | null>;
+  onCameraChange?: (enabled: boolean) => void;
 }
 
 export function useMediaControls({
   stream,
   audioSenderRef,
+  onCameraChange,
 }: UseMediaControlsProps) {
   const [isCameraOn, setIsCameraOn] = useState(true);
   const [isMicOn, setIsMicOn] = useState(true);
@@ -30,12 +32,16 @@ export function useMediaControls({
 
     setIsCameraOn((prev) => {
       const enabled = !prev;
+
       stream.getVideoTracks().forEach((track) => {
         track.enabled = enabled;
       });
+
+      onCameraChange?.(enabled);
+
       return enabled;
     });
-  }, [stream]);
+  }, [stream, onCameraChange]);
 
   const toggleMic = useCallback(() => {
     if (!stream) return;
