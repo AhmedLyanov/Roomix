@@ -49,3 +49,5 @@ export { default as ExcelIcon } from "./ExcelIcon.svg";
 export { default as FileIcon } from "./FileIcon.svg";
 export { default as ErrorNetwork } from "./SessionMissed.svg";
 export { default as MessageNone } from "./MessageNone.svg";
+export { default as SendMessage } from "./SendMessage.svg";
+export { default as SendBinaryFiles } from "./SendBinaryFiles.svg";

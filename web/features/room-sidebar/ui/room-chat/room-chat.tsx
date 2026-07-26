@@ -1,4 +1,4 @@
-import { NextIcon } from "@/shared/icons/24";
+import { NextIcon, SendMessage, SendBinaryFiles } from "@/shared/icons/24";
 import { Typography, Spinner } from "@/shared";
 import { useEffect, useState } from "react";
 import { RoomMessage, getRoomMessages } from "@/entities/message";
@@ -61,6 +61,19 @@ export default function RoomChat({
     };
   }, [roomSession.socketRef]);
 
+  const handleSendMessage = () => {
+    if (text.trim()) {
+      roomSession.sendMessage(text);
+      setText("");
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSendMessage();
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -98,19 +111,26 @@ export default function RoomChat({
         )}
       </div>
       <div className="bg-(--color-chat-input) rounded-[17px] border-t border-(--color-surface-strong) border-opacity-15 flex-shrink-0">
-        <input
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              roomSession.sendMessage(text);
-              setText("");
-            }
-          }}
-          type="text"
-          placeholder="Write your message"
-          className="w-full h-full py-5.25 px-2 outline-0 text-(--color-text) bg-transparent"
-        />
+        <div className="flex items-center gap-2 px-4">
+          <button className="flex-shrink-0">
+            <SendBinaryFiles />
+          </button>
+          <input
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={handleKeyDown}
+            type="text"
+            placeholder="Write your message"
+            className="w-full h-full py-5.25 outline-0 text-(--color-text) bg-transparent"
+          />
+          <button
+            className="flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={handleSendMessage}
+            disabled={!text.trim()}
+          >
+            <SendMessage />
+          </button>
+        </div>
       </div>
     </div>
   );
