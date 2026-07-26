@@ -102,6 +102,7 @@ export default fp(async function (fastify) {
           roomId: payload.roomId,
           senderId: payload.senderId,
           senderName: payload.senderName,
+          senderAvatar: payload.senderAvatar,
           text: payload.text,
           type: "text",
         });
@@ -126,8 +127,6 @@ export default fp(async function (fastify) {
           speaker,
           async (result) => {
             if (!result.text?.trim()) return;
-
-            // Группируем слушателей по языкам
             const listenersByLanguage = new Map();
 
             for (const [participantId, participant] of room) {
@@ -148,7 +147,6 @@ export default fp(async function (fastify) {
               targetLanguage: speaker.nativeLanguage,
             });
 
-            // Для каждого языка переводим один раз и отправляем всем
             for (const [targetLang, listenerIds] of listenersByLanguage) {
               try {
                 let translatedText = result.text;
@@ -172,7 +170,6 @@ export default fp(async function (fastify) {
                 }
               } catch (error) {
                 console.error("[WebSocket] Translation error:", error.message);
-                // Fallback: отправляем оригинал если перевод не удался
                 for (const listenerId of listenerIds) {
                   io.to(listenerId).emit("subtitle", {
                     originalText: result.text,

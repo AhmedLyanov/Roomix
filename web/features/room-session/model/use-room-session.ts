@@ -13,6 +13,7 @@ export function useRoomSession({
   roomId,
   userId,
   userName,
+  userAvatar,
   nativeLanguage,
 }: UseRoomSessionProps) {
   const { stream, stopStream } = useMedia();
@@ -40,6 +41,7 @@ export function useRoomSession({
     roomId,
     userId,
     userName,
+    userAvatar,
     nativeLanguage,
     stream,
     peersRef,

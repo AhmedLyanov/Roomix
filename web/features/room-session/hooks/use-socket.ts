@@ -22,6 +22,7 @@ interface UseSocketProps {
   roomId: string;
   userId: string | undefined;
   userName: string | undefined;
+  userAvatar: string | undefined;
   nativeLanguage: string;
   stream: MediaStream | null;
   peersRef: React.MutableRefObject<Map<string, Peer.Instance>>;
@@ -34,6 +35,7 @@ export function useSocket({
   roomId,
   userId,
   userName,
+  userAvatar,
   nativeLanguage,
   stream,
   peersRef,
@@ -84,10 +86,11 @@ export function useSocket({
         roomId,
         senderId: userId,
         senderName: userName,
+        senderAvatar: userAvatar,
         text: text.trim(),
       });
     },
-    [roomId, userId, userName],
+    [roomId, userId, userName, userAvatar],
   );
 
   useEffect(() => {

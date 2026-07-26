@@ -34,11 +34,19 @@ export function ChatMessage({ message }: ChatMessageProps) {
 
   return (
     <div className="flex items-start">
-      <div
-        className={`w-10 h-10 ${getAvatarColor(message.senderId)} rounded-full flex-shrink-0 flex items-center justify-center text-white font-semibold text-sm`}
-      >
-        {getInitials(message.senderName)}
-      </div>
+      {message.senderAvatar ? (
+        <img
+          src={message.senderAvatar}
+          alt={message.senderName}
+          className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+        />
+      ) : (
+        <div
+          className={`w-10 h-10 ${getAvatarColor(message.senderId)} rounded-full flex items-center justify-center text-white font-semibold`}
+        >
+          {getInitials(message.senderName)}
+        </div>
+      )}
       <div className="ml-4 flex-1">
         <Typography variant="body" className="text-[14px] font-semibold">
           {message.senderName}

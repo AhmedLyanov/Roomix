@@ -21,6 +21,7 @@ export interface UseRoomSessionProps {
   roomId: string;
   userId?: string;
   userName?: string;
+  userAvatar?: string;
   nativeLanguage: string;
 }
 
@@ -65,6 +66,7 @@ export interface JoinRoomPayload {
   roomId: string;
   userId: string;
   userName: string;
+  userAvatar?: string;
   nativeLanguage: string;
 }
 

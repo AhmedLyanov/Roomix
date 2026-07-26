@@ -9,6 +9,8 @@ export interface RoomMessage {
 
   senderName: string;
 
+  senderAvatar: string;
+
   text: string;
 
   type: RoomMessageType;

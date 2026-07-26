@@ -38,10 +38,14 @@ export default function RoomPage() {
       user?.primaryEmailAddress?.emailAddress)
     : undefined;
 
+  const userAvatar = isLoaded ? user?.imageUrl : undefined;
+
   const roomSession = useRoomSession({
     roomId,
     userId,
     userName,
+    userAvatar,
+
     nativeLanguage,
   });
 
