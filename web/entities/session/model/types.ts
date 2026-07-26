@@ -20,6 +20,8 @@ export interface Participant {
 
   userId: string;
   userName: string;
+  userAvatar: string;
+  avatar: string;
   language: string;
 
   joinedAt: string;

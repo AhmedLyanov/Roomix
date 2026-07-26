@@ -1,5 +1,5 @@
 import { NextIcon } from "@/shared/icons/24";
-import { Typography } from "@/shared";
+import { Typography, Spinner } from "@/shared";
 import { useEffect, useState } from "react";
 import { RoomMessage, getRoomMessages } from "@/entities/message";
 import { ChatMessage } from "./chat-message";
@@ -81,9 +81,7 @@ export default function RoomChat({
       <div className="flex-1 overflow-y-auto py-4">
         {loading ? (
           <div className="flex items-center justify-center h-full">
-            <Typography variant="body" className="text-(--color-gray-light)">
-              Loading messages...
-            </Typography>
+            <Spinner />
           </div>
         ) : messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">

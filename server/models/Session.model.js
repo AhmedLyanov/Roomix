@@ -43,6 +43,11 @@ const SessionSchema = new Schema(
           required: true,
         },
 
+        userAvatar: {
+          type: String,
+          required: true,
+        },
+
         language: {
           type: String,
           required: true,

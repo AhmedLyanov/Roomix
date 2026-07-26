@@ -7,7 +7,7 @@ import { BroadcastIcon, LessonIcon, MeetingIcon } from "@/shared/icons/24";
 
 import { SessionModeCard, useCreateSession } from "@/features/create-lesson";
 
-import { SessionHistory } from "@/widgets/session-history";
+import { SessionsList } from "@/widgets/sessions-list";
 
 export default function DashboardPage() {
   const { user, isLoaded } = useUser();
@@ -39,7 +39,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="mt-15.75">
-        <SessionHistory userId={user.id} />
+        <SessionsList userId={user.id} />
       </div>
     </section>
   );

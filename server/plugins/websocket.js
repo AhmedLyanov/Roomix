@@ -28,7 +28,7 @@ export default fp(async function (fastify) {
   io.on("connection", (socket) => {
     socket.on(
       "join-room",
-      async ({ roomId, userId, userName, nativeLanguage }) => {
+      async ({ roomId, userId, userName, nativeLanguage, userAvatar }) => {
         socket.join(roomId);
 
         if (!rooms.has(roomId)) {
@@ -42,6 +42,7 @@ export default fp(async function (fastify) {
           userId,
           userName,
           nativeLanguage,
+          userAvatar,
         });
 
         users.set(socket.id, {
@@ -49,12 +50,14 @@ export default fp(async function (fastify) {
           userName,
           roomId,
           nativeLanguage,
+          userAvatar,
         });
 
         await createSession({
           roomId,
           ownerId: userId,
           ownerName: userName,
+          ownerAvatar: userAvatar,
           language: nativeLanguage,
         });
 
@@ -62,6 +65,7 @@ export default fp(async function (fastify) {
           roomId,
           userId,
           userName,
+          avatar: userAvatar,
           language: nativeLanguage,
         });
 

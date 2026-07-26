@@ -122,6 +122,7 @@ export function useSocket({
         userId: userId!,
         userName: userName!,
         nativeLanguage,
+        userAvatar: userAvatar,
       };
 
       socket.emit("join-room", joinPayload);
@@ -205,6 +206,7 @@ export function useSocket({
     roomId,
     userId,
     userName,
+    userAvatar,
     stream,
     nativeLanguage,
     createPeer,

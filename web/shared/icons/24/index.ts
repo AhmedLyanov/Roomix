@@ -48,3 +48,4 @@ export { default as ExcelIcon } from "./ExcelIcon.svg";
 // export {default as VideoIcon} from "./VideoIcon.svg";
 export { default as FileIcon } from "./FileIcon.svg";
 export { default as ErrorNetwork } from "./SessionMissed.svg";
+export { default as MessageNone } from "./MessageNone.svg";

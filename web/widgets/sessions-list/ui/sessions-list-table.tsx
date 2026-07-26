@@ -10,7 +10,7 @@ interface Props {
   userId: string;
 }
 
-export function SessionHistoryTable({ userId }: Props) {
+export function SessionsListTable({ userId }: Props) {
   const { data: sessions = [], isLoading } = useSessions(userId);
   const deleteMutation = useDeleteSession(userId);
 

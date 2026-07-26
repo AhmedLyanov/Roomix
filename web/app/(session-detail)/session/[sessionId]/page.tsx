@@ -9,6 +9,7 @@ import {
   SessionAi,
   SessionFiles,
   SessionActions,
+  SessionChat,
 } from "@/widgets/session";
 import { ErrorNetwork } from "@/shared/icons/24";
 
@@ -73,7 +74,7 @@ export default function SessionPage() {
       <SessionOverview session={sessionNumber} />
 
       <div className="pt-2">
-        <SessionTimeline />
+        <SessionTimeline session={session} />
 
         <div className="grid grid-cols-3 gap-2 pt-2">
           <SessionParticipants session={session} />
@@ -81,8 +82,9 @@ export default function SessionPage() {
           <SessionFiles />
         </div>
 
-        <div className="pt-2">
+        <div className="pt-2 grid grid-cols-2 gap-2 ">
           <SessionActions />
+          <SessionChat session={session} />
         </div>
       </div>
     </div>

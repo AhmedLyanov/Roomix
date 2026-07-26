@@ -1,6 +1,6 @@
 import Session from "../models/Session.model.js";
 
-export async function createSession({ roomId, ownerId, ownerName, language }) {
+export async function createSession({ roomId, ownerId, ownerName, ownerAvatar, language }) {
   return await Session.findOneAndUpdate(
     {
       roomId,
@@ -16,6 +16,7 @@ export async function createSession({ roomId, ownerId, ownerName, language }) {
           {
             userId: ownerId,
             userName: ownerName,
+            userAvatar: ownerAvatar, 
             language,
             joinedAt: new Date(),
           },
@@ -24,13 +25,13 @@ export async function createSession({ roomId, ownerId, ownerName, language }) {
     },
     {
       upsert: true,
-      new: true,
+      returnDocument: 'after', 
       setDefaultsOnInsert: true,
     },
   );
 }
 
-export async function joinParticipant({ roomId, userId, userName, language }) {
+export async function joinParticipant({ roomId, userId, userName, avatar, language }) {
   const session = await Session.findOne({
     roomId,
     endedAt: { $exists: false },
@@ -47,11 +48,14 @@ export async function joinParticipant({ roomId, userId, userName, language }) {
   session.participants.push({
     userId,
     userName,
+    userAvatar: avatar, 
     language,
     joinedAt: new Date(),
   });
 
   await session.save();
+  
+  return session;
 }
 
 export async function leaveParticipant({ roomId, userId }) {
@@ -71,6 +75,8 @@ export async function leaveParticipant({ roomId, userId }) {
   participant.leftAt = new Date();
 
   await session.save();
+  
+  return session;
 }
 
 export async function finishSession(roomId) {
@@ -88,6 +94,8 @@ export async function finishSession(roomId) {
   );
 
   await session.save();
+  
+  return session;
 }
 
 export async function getSessions(userId) {
@@ -101,6 +109,7 @@ export async function getSessions(userId) {
 export async function getSession(sessionId) {
   return Session.findById(sessionId);
 }
+
 export async function deleteSession(sessionId) {
   return Session.findByIdAndDelete(sessionId);
 }

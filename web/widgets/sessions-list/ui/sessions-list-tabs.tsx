@@ -1,6 +1,6 @@
 import { Typography } from "@/shared";
 
-export function SessionHistoryTabs() {
+export function SessionsListTabs() {
   return (
     <div className="flex items-center gap-20.5">
       <button
