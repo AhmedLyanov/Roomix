@@ -93,6 +93,17 @@ export function useSocket({
     [roomId, userId, userName, userAvatar],
   );
 
+  const updateLanguage = useCallback(
+    (language: string) => {
+      socketRef.current?.emit("language:update", {
+        roomId,
+        userId,
+        language,
+      });
+    },
+    [roomId, userId],
+  );
+
   useEffect(() => {
     if (!stream || !userId || !userName) return;
 
@@ -208,7 +219,6 @@ export function useSocket({
     userName,
     userAvatar,
     stream,
-    nativeLanguage,
     createPeer,
     removePeer,
     setSubtitle,
@@ -232,5 +242,6 @@ export function useSocket({
     handleSignal,
     disconnectSocket,
     sendMessage,
+    updateLanguage,
   };
 }

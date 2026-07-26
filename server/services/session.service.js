@@ -1,6 +1,12 @@
 import Session from "../models/Session.model.js";
 
-export async function createSession({ roomId, ownerId, ownerName, ownerAvatar, language }) {
+export async function createSession({
+  roomId,
+  ownerId,
+  ownerName,
+  ownerAvatar,
+  language,
+}) {
   return await Session.findOneAndUpdate(
     {
       roomId,
@@ -16,7 +22,7 @@ export async function createSession({ roomId, ownerId, ownerName, ownerAvatar, l
           {
             userId: ownerId,
             userName: ownerName,
-            userAvatar: ownerAvatar, 
+            userAvatar: ownerAvatar,
             language,
             joinedAt: new Date(),
           },
@@ -25,13 +31,19 @@ export async function createSession({ roomId, ownerId, ownerName, ownerAvatar, l
     },
     {
       upsert: true,
-      returnDocument: 'after', 
+      returnDocument: "after",
       setDefaultsOnInsert: true,
     },
   );
 }
 
-export async function joinParticipant({ roomId, userId, userName, avatar, language }) {
+export async function joinParticipant({
+  roomId,
+  userId,
+  userName,
+  avatar,
+  language,
+}) {
   const session = await Session.findOne({
     roomId,
     endedAt: { $exists: false },
@@ -48,13 +60,33 @@ export async function joinParticipant({ roomId, userId, userName, avatar, langua
   session.participants.push({
     userId,
     userName,
-    userAvatar: avatar, 
+    userAvatar: avatar,
     language,
     joinedAt: new Date(),
   });
 
   await session.save();
-  
+
+  return session;
+}
+export async function updateParticipantLanguage({ roomId, userId, language }) {
+  const session = await Session.findOne({
+    roomId,
+    endedAt: { $exists: false },
+  });
+
+  if (!session) return;
+
+  const participant = session.participants.find(
+    (participant) => participant.userId === userId,
+  );
+
+  if (!participant) return;
+
+  participant.language = language;
+
+  await session.save();
+
   return session;
 }
 
@@ -75,7 +107,7 @@ export async function leaveParticipant({ roomId, userId }) {
   participant.leftAt = new Date();
 
   await session.save();
-  
+
   return session;
 }
 
@@ -94,7 +126,7 @@ export async function finishSession(roomId) {
   );
 
   await session.save();
-  
+
   return session;
 }
 

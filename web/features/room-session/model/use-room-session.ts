@@ -37,6 +37,7 @@ export function useRoomSession({
     handleSignal,
     disconnectSocket,
     sendMessage,
+    updateLanguage,
   } = useSocket({
     roomId,
     userId,
@@ -81,6 +82,7 @@ export function useRoomSession({
     socketId,
     socketRef,
     sendMessage,
+    updateLanguage,
 
     isCameraOn,
     isMicOn,

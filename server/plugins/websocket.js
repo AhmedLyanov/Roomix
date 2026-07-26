@@ -4,6 +4,7 @@ import { Server } from "socket.io";
 import {
   createSession,
   joinParticipant,
+  updateParticipantLanguage,
   leaveParticipant,
   finishSession,
 } from "../services/session.service.js";
@@ -53,7 +54,7 @@ export default fp(async function (fastify) {
           userAvatar,
         });
 
-        await createSession({
+        const session = await createSession({
           roomId,
           ownerId: userId,
           ownerName: userName,
@@ -61,13 +62,15 @@ export default fp(async function (fastify) {
           language: nativeLanguage,
         });
 
-        await joinParticipant({
-          roomId,
-          userId,
-          userName,
-          avatar: userAvatar,
-          language: nativeLanguage,
-        });
+        if (session.ownerId !== userId) {
+          await joinParticipant({
+            roomId,
+            userId,
+            userName,
+            avatar: userAvatar,
+            language: nativeLanguage,
+          });
+        }
 
         const existingUsers = Array.from(room.values())
           .filter((participant) => participant.socketId !== socket.id)
@@ -190,6 +193,30 @@ export default fp(async function (fastify) {
       } catch (err) {
         console.error("[WebSocket] Audio chunk error:", err.message);
       }
+    });
+
+    socket.on("language:update", async ({ roomId, userId, language }) => {
+      const user = users.get(socket.id);
+
+      if (user) {
+        user.nativeLanguage = language;
+      }
+
+      const room = rooms.get(roomId);
+
+      if (room) {
+        const participant = room.get(socket.id);
+
+        if (participant) {
+          participant.nativeLanguage = language;
+        }
+      }
+
+      await updateParticipantLanguage({
+        roomId,
+        userId,
+        language,
+      });
     });
 
     socket.on("disconnect", async () => {

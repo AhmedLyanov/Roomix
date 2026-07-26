@@ -142,7 +142,10 @@ export default function RoomPage() {
         isTranslationEnabled={roomSession.isTranslationEnabled}
         isScreenSharing={roomSession.isScreenSharing}
         nativeLanguage={nativeLanguage}
-        onLanguageChange={setNativeLanguage}
+        onLanguageChange={(language) => {
+          setNativeLanguage(language);
+          roomSession.updateLanguage(language);
+        }}
         onToggleCamera={roomSession.toggleCamera}
         onToggleMic={roomSession.toggleMic}
         onToggleTranslation={roomSession.toggleTranslation}
