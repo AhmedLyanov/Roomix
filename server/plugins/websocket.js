@@ -44,6 +44,7 @@ export default fp(async function (fastify) {
           userName,
           nativeLanguage,
           cameraEnabled: true,
+          microphoneEnabled: true,
           userAvatar,
         });
 
@@ -80,18 +81,22 @@ export default fp(async function (fastify) {
             userName: participant.userName,
             userAvatar: participant.userAvatar,
             cameraEnabled: participant.cameraEnabled,
+            microphoneEnabled: participant.microphoneEnabled,
           }));
+
         if (existingUsers.length > 0) {
           socket.emit("existing-users", { users: existingUsers });
         }
 
+        const participant = room.get(socket.id);
+
         socket.to(roomId).emit("user-connected", {
           socketId: socket.id,
           userId,
-          cameraEnabled: true,
-          userAvatar,
-
           userName,
+          userAvatar,
+          cameraEnabled: participant.cameraEnabled,
+          microphoneEnabled: participant.microphoneEnabled,
         });
       },
     );
@@ -236,6 +241,23 @@ export default fp(async function (fastify) {
       participant.cameraEnabled = enabled;
 
       socket.to(roomId).emit("camera:update", {
+        socketId: socket.id,
+        enabled,
+      });
+    });
+
+    socket.on("mic:update", ({ roomId, enabled }) => {
+      const room = rooms.get(roomId);
+
+      if (!room) return;
+
+      const participant = room.get(socket.id);
+
+      if (!participant) return;
+
+      participant.microphoneEnabled = enabled;
+
+      socket.to(roomId).emit("mic:update", {
         socketId: socket.id,
         enabled,
       });

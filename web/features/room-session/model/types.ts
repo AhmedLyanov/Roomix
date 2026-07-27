@@ -29,6 +29,7 @@ export interface Participant {
   userName: string;
   userAvatar?: string;
   cameraEnabled: boolean;
+  microphoneEnabled: boolean;
 }
 
 export interface UserData {
@@ -36,6 +37,7 @@ export interface UserData {
   userName: string;
   userAvatar?: string;
   cameraEnabled: boolean;
+  microphoneEnabled: boolean;
 }
 export interface ExistingUsersPayload {
   users: UserData[];
@@ -61,6 +63,7 @@ export interface UserConnectedPayload {
   userName: string;
   userAvatar?: string;
   cameraEnabled: boolean;
+  microphoneEnabled: boolean;
 }
 export interface UserDisconnectedPayload {
   socketId: string;
@@ -82,6 +85,11 @@ export interface SignalData {
   to: string;
 }
 export interface CameraUpdatePayload {
+  socketId: string;
+  enabled: boolean;
+}
+
+export interface MicrophoneUpdatePayload {
   socketId: string;
   enabled: boolean;
 }

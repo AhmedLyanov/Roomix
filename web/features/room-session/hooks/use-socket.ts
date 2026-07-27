@@ -16,6 +16,7 @@ import type {
   JoinRoomPayload,
   Participant,
   SignalData,
+  MicrophoneUpdatePayload,
 } from "../types";
 
 interface UseSocketProps {
@@ -115,6 +116,17 @@ export function useSocket({
     [roomId, userId],
   );
 
+  const updateMicrophone = useCallback(
+    (enabled: boolean) => {
+      socketRef.current?.emit("mic:update", {
+        roomId,
+        userId,
+        enabled,
+      });
+    },
+    [roomId, userId],
+  );
+
   useEffect(() => {
     if (!stream || !userId || !userName) return;
 
@@ -167,11 +179,7 @@ export function useSocket({
           userName,
           userAvatar,
           cameraEnabled,
-        }: {
-          socketId: string;
-          userName: string;
-          userAvatar?: string;
-          cameraEnabled: boolean;
+          microphoneEnabled,
         }) => {
           if (socketId === socket.id) return;
 
@@ -181,6 +189,7 @@ export function useSocket({
               userName,
               userAvatar,
               cameraEnabled,
+              microphoneEnabled,
             });
             return next;
           });
@@ -197,6 +206,7 @@ export function useSocket({
         userName,
         userAvatar,
         cameraEnabled,
+        microphoneEnabled,
       }: UserConnectedPayload) => {
         if (socketId === socket.id) return;
 
@@ -206,6 +216,7 @@ export function useSocket({
             userName,
             userAvatar,
             cameraEnabled,
+            microphoneEnabled,
           });
           return next;
         });
@@ -230,6 +241,26 @@ export function useSocket({
         return next;
       });
     });
+
+    socket.on(
+      "mic:update",
+      ({ socketId, enabled }: MicrophoneUpdatePayload) => {
+        setParticipants((prev) => {
+          const next = new Map(prev);
+
+          const participant = next.get(socketId);
+
+          if (!participant) return prev;
+
+          next.set(socketId, {
+            ...participant,
+            microphoneEnabled: enabled,
+          });
+
+          return next;
+        });
+      },
+    );
 
     socket.on("offer", ({ offer, from }: OfferPayload) => {
       let peer = peersRef.current.get(from);
@@ -296,6 +327,7 @@ export function useSocket({
     disconnectSocket,
     sendMessage,
     updateCamera,
+    updateMicrophone,
     updateLanguage,
   };
 }

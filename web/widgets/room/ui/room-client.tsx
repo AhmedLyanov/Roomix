@@ -152,6 +152,9 @@ export default function RoomClient({
                   }
                   avatar={participants.get(id)?.userAvatar}
                   cameraEnabled={participants.get(id)?.cameraEnabled ?? true}
+                  microphoneEnabled={
+                    participants.get(id)?.microphoneEnabled ?? true
+                  }
                   userId={participants.get(id)?.userId ?? id}
                   onFullscreen={() =>
                     toggleFullscreen(document.getElementById(`video-${id}`), id)
@@ -227,6 +230,9 @@ export default function RoomClient({
                   }
                   avatar={participants.get(id)?.userAvatar}
                   cameraEnabled={participants.get(id)?.cameraEnabled ?? true}
+                  microphoneEnabled={
+                    participants.get(id)?.microphoneEnabled ?? true
+                  }
                   userId={participants.get(id)?.userId ?? id}
                   onFullscreen={() =>
                     toggleFullscreen(document.getElementById(`video-${id}`), id)

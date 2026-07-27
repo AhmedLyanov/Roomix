@@ -39,6 +39,7 @@ export function useRoomSession({
     sendMessage,
     updateLanguage,
     updateCamera,
+    updateMicrophone,
   } = useSocket({
     roomId,
     userId,
@@ -69,6 +70,7 @@ export function useRoomSession({
     stream,
     audioSenderRef,
     onCameraChange: updateCamera,
+    onMicrophoneChange: updateMicrophone,
   });
 
   const disconnect = useCallback(() => {

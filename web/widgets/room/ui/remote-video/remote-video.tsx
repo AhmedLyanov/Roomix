@@ -13,6 +13,8 @@ interface Props {
   height: number;
 
   cameraEnabled: boolean;
+  microphoneEnabled: boolean;
+
   avatar?: string;
 
   onFullscreen: () => void;
@@ -25,6 +27,7 @@ export function RemoteVideoCard({
   height,
   userId,
   cameraEnabled,
+  microphoneEnabled,
   avatar,
   onFullscreen,
 }: Props) {
@@ -39,6 +42,7 @@ export function RemoteVideoCard({
 
     videoRef.current.srcObject = stream;
   }, [stream]);
+
   useEffect(() => {
     console.log("[RemoteVideoCard] avatar:", avatar);
     console.log("[RemoteVideoCard] userName:", userName);
@@ -54,6 +58,10 @@ export function RemoteVideoCard({
     if (!name) return "?";
     return name[0]?.toUpperCase() || "?";
   };
+
+  const showMicrophoneIcon = !microphoneEnabled;
+  const showCameraIcon = !cameraEnabled;
+  const hasIcons = showMicrophoneIcon || showCameraIcon;
 
   return (
     <div
@@ -84,15 +92,15 @@ export function RemoteVideoCard({
         {!cameraEnabled && (
           <div
             className="
-    absolute
-    inset-0
-    flex
-    h-full
-    w-full
-    flex-col
-    items-center
-    justify-center
-  "
+              absolute
+              inset-0
+              flex
+              h-full
+              w-full
+              flex-col
+              items-center
+              justify-center
+            "
             style={{
               backgroundColor,
             }}
@@ -146,10 +154,12 @@ export function RemoteVideoCard({
           items-center
         "
       >
-        <div className="flex gap-3 items-center mr-4">
-          <MicroOffIcon />
-          <WebOffIcon />
-        </div>
+        {hasIcons && (
+          <div className="flex gap-3 items-center mr-4">
+            {showMicrophoneIcon && <MicroOffIcon />}
+            {showCameraIcon && <WebOffIcon />}
+          </div>
+        )}
         <Typography variant="caption" className="text-[18px]">
           {userName}
         </Typography>

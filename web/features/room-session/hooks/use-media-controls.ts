@@ -7,12 +7,14 @@ interface UseMediaControlsProps {
   stream: MediaStream | null;
   audioSenderRef: React.MutableRefObject<AudioSender | null>;
   onCameraChange?: (enabled: boolean) => void;
+  onMicrophoneChange?: (enabled: boolean) => void;
 }
 
 export function useMediaControls({
   stream,
   audioSenderRef,
   onCameraChange,
+  onMicrophoneChange,
 }: UseMediaControlsProps) {
   const [isCameraOn, setIsCameraOn] = useState(true);
   const [isMicOn, setIsMicOn] = useState(true);
@@ -48,13 +50,18 @@ export function useMediaControls({
 
     setIsMicOn((prev) => {
       const enabled = !prev;
+
       stream.getAudioTracks().forEach((track) => {
         track.enabled = enabled;
       });
+
       audioSenderRef.current?.setMicEnabled(enabled);
+
+      onMicrophoneChange?.(enabled);
+
       return enabled;
     });
-  }, [stream, audioSenderRef]);
+  }, [stream, audioSenderRef, onMicrophoneChange]);
 
   const toggleScreenShare = useCallback(() => {}, []);
 
