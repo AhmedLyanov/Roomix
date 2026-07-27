@@ -51,3 +51,5 @@ export { default as ErrorNetwork } from "./SessionMissed.svg";
 export { default as MessageNone } from "./MessageNone.svg";
 export { default as SendMessage } from "./SendMessage.svg";
 export { default as SendBinaryFiles } from "./SendBinaryFiles.svg";
+export { default as MicroOffIcon } from "./MicroOffIcon.svg";
+export { default as WebOffIcon } from "./WebOffIcon.svg";

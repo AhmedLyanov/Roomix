@@ -119,6 +119,7 @@ export default function RoomClient({
               userName={userName}
               width={mainVideo.width}
               height={mainVideo.height}
+              userId={participants.get(socketId)?.userId ?? socketId}
               avatar={userAvatar}
               cameraEnabled={isCameraOn ?? true}
               onFullscreen={() =>
@@ -151,6 +152,7 @@ export default function RoomClient({
                   }
                   avatar={participants.get(id)?.userAvatar}
                   cameraEnabled={participants.get(id)?.cameraEnabled ?? true}
+                  userId={participants.get(id)?.userId ?? id}
                   onFullscreen={() =>
                     toggleFullscreen(document.getElementById(`video-${id}`), id)
                   }
@@ -188,6 +190,7 @@ export default function RoomClient({
             width={mainVideo.width}
             height={mainVideo.height}
             avatar={userAvatar}
+            userId={participants.get(socketId)?.userId ?? socketId}
             cameraEnabled={isCameraOn ?? true}
             onFullscreen={() =>
               toggleFullscreen(document.getElementById("local-video"), "local")
@@ -224,6 +227,7 @@ export default function RoomClient({
                   }
                   avatar={participants.get(id)?.userAvatar}
                   cameraEnabled={participants.get(id)?.cameraEnabled ?? true}
+                  userId={participants.get(id)?.userId ?? id}
                   onFullscreen={() =>
                     toggleFullscreen(document.getElementById(`video-${id}`), id)
                   }
@@ -258,6 +262,7 @@ export default function RoomClient({
           stream={stream}
           userName={userName}
           width={mainVideo.width}
+          userId={participants.get(socketId)?.userId ?? socketId}
           height={mainVideo.height}
           avatar={userAvatar}
           cameraEnabled={isCameraOn ?? true}

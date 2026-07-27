@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { FullScreenIcon } from "@/shared/icons/24";
+import { FullScreenIcon, MicroOffIcon, WebOffIcon } from "@/shared/icons/24";
 import { Typography } from "@/shared";
+import { getParticipantColor } from "@/shared/lib/participant/get-participant-color";
 
 interface Props {
+  userId: string;
   stream: MediaStream;
   userName: string;
   width: number;
@@ -21,12 +23,14 @@ export function RemoteVideoCard({
   userName,
   width,
   height,
+  userId,
   cameraEnabled,
   avatar,
   onFullscreen,
 }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [imageError, setImageError] = useState(false);
+  const backgroundColor = getParticipantColor(userId);
 
   useEffect(() => {
     if (!videoRef.current || !stream) {
@@ -35,8 +39,6 @@ export function RemoteVideoCard({
 
     videoRef.current.srcObject = stream;
   }, [stream]);
-
-  // Логируем для диагностики
   useEffect(() => {
     console.log("[RemoteVideoCard] avatar:", avatar);
     console.log("[RemoteVideoCard] userName:", userName);
@@ -48,7 +50,6 @@ export function RemoteVideoCard({
     setImageError(true);
   };
 
-  // Функция для получения инициалов
   const getInitials = (name: string) => {
     if (!name) return "?";
     return name[0]?.toUpperCase() || "?";
@@ -83,16 +84,18 @@ export function RemoteVideoCard({
         {!cameraEnabled && (
           <div
             className="
-              absolute
-              inset-0
-              flex
-              h-full
-              w-full
-              flex-col
-              items-center
-              justify-center
-              bg-[#243B6B]
-            "
+    absolute
+    inset-0
+    flex
+    h-full
+    w-full
+    flex-col
+    items-center
+    justify-center
+  "
+            style={{
+              backgroundColor,
+            }}
           >
             {avatar && !imageError ? (
               <img
@@ -139,8 +142,14 @@ export function RemoteVideoCard({
           bg-(--room-webcam-badge)
           px-7.75
           py-3.5
+          flex
+          items-center
         "
       >
+        <div className="flex gap-3 items-center mr-4">
+          <MicroOffIcon />
+          <WebOffIcon />
+        </div>
         <Typography variant="caption" className="text-[18px]">
           {userName}
         </Typography>

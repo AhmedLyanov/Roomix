@@ -3,10 +3,12 @@
 import { useEffect, useRef } from "react";
 import { FullScreenIcon } from "@/shared/icons/24";
 import { Typography } from "@/shared";
+import { getParticipantColor } from "@/shared/lib/participant/get-participant-color";
 
 interface Props {
   stream: MediaStream | null;
   userName?: string;
+  userId: string;
   width: number;
   height: number;
 
@@ -21,11 +23,13 @@ export function LocalVideoCard({
   userName,
   width,
   height,
+  userId,
   cameraEnabled,
   avatar,
   onFullscreen,
 }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const backgroundColor = getParticipantColor(userId);
 
   useEffect(() => {
     if (!videoRef.current || !stream) {
@@ -64,15 +68,8 @@ export function LocalVideoCard({
 
         {!cameraEnabled && (
           <div
-            className="
-              absolute
-              inset-0
-              flex
-              flex-col
-              items-center
-              justify-center
-              bg-[#243B6B]
-            "
+            className="absolute inset-0 flex h-full w-full flex-col items-center justify-center"
+            style={{ backgroundColor }}
           >
             {avatar ? (
               <img
@@ -119,7 +116,7 @@ export function LocalVideoCard({
         "
       >
         <Typography variant="caption" className="text-[18px]">
-          {userName ?? "Anonymous"}
+          {/* {userName} (You) */} You
         </Typography>
       </div>
 
