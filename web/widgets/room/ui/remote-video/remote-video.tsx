@@ -65,6 +65,7 @@ export function RemoteVideoCard({
 
   return (
     <div
+      id={`video-${userId}`}
       className="
         relative
         overflow-hidden

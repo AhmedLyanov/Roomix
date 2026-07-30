@@ -41,6 +41,7 @@ export function LocalVideoCard({
 
   return (
     <div
+      id="local-video"
       className="
         relative
         overflow-hidden
