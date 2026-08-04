@@ -1,4 +1,5 @@
 import Session from "../models/Session.model.js";
+import { createSessionAction } from "./session-action.service.js";
 
 export async function createSession({
   roomId,
@@ -7,34 +8,43 @@ export async function createSession({
   ownerAvatar,
   language,
 }) {
-  return await Session.findOneAndUpdate(
-    {
-      roomId,
-      endedAt: { $exists: false },
-    },
-    {
-      $setOnInsert: {
-        roomId,
-        ownerId,
-        ownerName,
-        startedAt: new Date(),
-        participants: [
-          {
-            userId: ownerId,
-            userName: ownerName,
-            userAvatar: ownerAvatar,
-            language,
-            joinedAt: new Date(),
-          },
-        ],
+  const existingSession = await Session.findOne({
+    roomId,
+    endedAt: { $exists: false },
+  });
+
+  if (existingSession) {
+    return existingSession;
+  }
+
+  const session = await Session.create({
+    roomId,
+    ownerId,
+    ownerName,
+    startedAt: new Date(),
+
+    participants: [
+      {
+        userId: ownerId,
+        userName: ownerName,
+        userAvatar: ownerAvatar,
+        language,
+        joinedAt: new Date(),
       },
+    ],
+  });
+
+  await createSessionAction({
+    sessionId: session._id,
+    type: "SESSION_STARTED",
+    userId: ownerId,
+
+    metadata: {
+      ownerName,
     },
-    {
-      upsert: true,
-      returnDocument: "after",
-      setDefaultsOnInsert: true,
-    },
-  );
+  });
+
+  return session;
 }
 
 export async function joinParticipant({
@@ -66,6 +76,15 @@ export async function joinParticipant({
   });
 
   await session.save();
+  await createSessionAction({
+    sessionId: session._id,
+    type: "PARTICIPANT_JOINED",
+    userId,
+
+    metadata: {
+      userName,
+    },
+  });
 
   return session;
 }

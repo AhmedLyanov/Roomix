@@ -1,59 +1,61 @@
 "use client";
 
-import {
-  LoginOutlined,
-  LogoutOutlined,
-  MessageOutlined,
-  UploadOutlined,
-  UserAddOutlined,
-} from "@ant-design/icons";
-
+import { LoginOutlined, UserAddOutlined } from "@ant-design/icons";
+import { useSessionActions } from "@/entities/session-actions";
 import { Typography } from "@/shared";
 
-const mockActions = [
-  {
-    id: 1,
-    time: "11:59:23 PM",
-    color: "#22C55E",
-    icon: <LoginOutlined />,
-    title: "Session started",
-    description: "Henry Allen started the session",
-  },
-  {
-    id: 2,
-    time: "12:00:05 AM",
-    color: "#3B82F6",
-    icon: <UserAddOutlined />,
-    title: "Participant joined",
-    description: "Sophie Lee joined the session",
-  },
-  {
-    id: 3,
-    time: "12:00:27 AM",
-    color: "#8B5CF6",
-    icon: <UploadOutlined />,
-    title: "File uploaded",
-    description: 'File "design-system.pdf" uploaded by Sophie Lee',
-  },
-  {
-    id: 4,
-    time: "12:15:42 AM",
-    color: "#F59E0B",
-    icon: <MessageOutlined />,
-    title: "Chat message",
-    description: "Henry Allen sent a message",
-  },
-  {
-    id: 5,
-    time: "01:59:20 AM",
-    color: "#EF4444",
-    icon: <LogoutOutlined />,
-    title: "Session ended",
-    description: "Meeting finished successfully",
-  },
-];
+interface Props {
+  sessionId: string;
+}
 
-export default function SessionActions() {
+export default function SessionActions({ sessionId }: Props) {
+  const { data: actions = [], isLoading } = useSessionActions(sessionId);
+
+  if (isLoading) {
+    return (
+      <div className="rounded-xl bg-(--table-meta-bg) p-6">
+        <Typography variant="caption" className="mb-8 block text-[18px]">
+          Action History
+        </Typography>
+        <div className="flex flex-col gap-8">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="grid grid-cols-[170px_40px_1fr] gap-6">
+              <div className="h-4 w-20 animate-pulse rounded bg-gray-200" />
+              <div className="h-8 w-8 animate-pulse rounded-full bg-gray-200" />
+              <div className="space-y-2">
+                <div className="h-4 w-40 animate-pulse rounded bg-gray-200" />
+                <div className="h-3 w-24 animate-pulse rounded bg-gray-200" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  const getActionIcon = (type: string) => {
+    switch (type) {
+      case "SESSION_STARTED":
+        return {
+          icon: <LoginOutlined className="text-white text-[16px]" />,
+          bg: "bg-green-500",
+          label: "Session Started",
+        };
+      case "PARTICIPANT_JOINED":
+        return {
+          icon: <UserAddOutlined className="text-white text-[16px]" />,
+          bg: "bg-blue-500",
+          label: "Participant Joined",
+        };
+      default:
+        return {
+          icon: null,
+          bg: "bg-gray-400",
+          label: type,
+        };
+    }
+  };
+
   return (
     <div className="rounded-xl bg-(--table-meta-bg) p-6">
       <Typography variant="caption" className="mb-8 block text-[18px]">
@@ -61,64 +63,70 @@ export default function SessionActions() {
       </Typography>
 
       <div className="flex flex-col gap-8">
-        {mockActions.map((action, index) => (
-          <div
-            key={action.id}
-            className="grid grid-cols-[170px_40px_1fr] gap-6"
-          >
-            {/* Time */}
-            <div className="pt-1 text-right">
-              <Typography variant="body" className="text-(--color-gray-light)">
-                {action.time}
-              </Typography>
-            </div>
+        {actions.map((action, index) => {
+          const { icon, bg, label } = getActionIcon(action.type);
 
-            {/* Timeline */}
-            <div className="relative flex justify-center">
-              {index !== mockActions.length - 1 && (
+          return (
+            <div
+              key={action._id}
+              className="grid grid-cols-[170px_40px_1fr] gap-6"
+            >
+              <div className="pt-1 text-right">
+                <Typography
+                  variant="body"
+                  className="text-(--color-gray-light)"
+                >
+                  {new Date(action.createdAt).toLocaleTimeString()}
+                </Typography>
+              </div>
+
+              <div className="relative flex justify-center">
+                {index !== actions.length - 1 && (
+                  <div
+                    className="
+                      absolute
+                      top-8
+                      bottom-[-40px]
+                      w-px
+                      bg-(--primary-border)
+                    "
+                  />
+                )}
+
                 <div
-                  className="
-                    absolute
-                    top-8
-                    bottom-[-40px]
-                    w-px
-                    bg-(--primary-border)
-                  "
-                />
-              )}
+                  className={`
+                    z-10
+                    flex
+                    h-8
+                    w-8
+                    items-center
+                    justify-center
+                    rounded-full
+                    border
+                    border-(--primary-border)
+                    ${bg}
+                  `}
+                >
+                  {icon}
+                </div>
+              </div>
+              <div>
+                <Typography
+                  variant="caption"
+                  className="mb-1 block text-[16px]"
+                >
+                  {label}
+                </Typography>
 
-              <div
-                className="
-                  z-10
-                  flex
-                  h-8
-                  w-8
-                  items-center
-                  justify-center
-                  rounded-full
-                  border
-                  border-(--primary-border)
-                  bg-(--color-background)
-                "
-                style={{
-                  color: action.color,
-                }}
-              >
-                {action.icon}
+                <Typography variant="body" className="text-(--color-gray)">
+                  {action.metadata?.ownerName ||
+                    action.metadata?.userName ||
+                    "User action"}
+                </Typography>
               </div>
             </div>
-
-            <div>
-              <Typography variant="caption" className="mb-1 block text-[16px]">
-                {action.title}
-              </Typography>
-
-              <Typography variant="body" className="text-(--color-gray)">
-                {action.description}
-              </Typography>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

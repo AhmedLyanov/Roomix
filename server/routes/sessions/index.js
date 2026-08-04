@@ -3,6 +3,7 @@ import {
   getSession,
   deleteSession,
 } from "../../services/session.service.js";
+import { getSessionActions } from "../../services/session-action.service.js";
 
 export default async function (fastify) {
   fastify.get(
@@ -34,6 +35,18 @@ export default async function (fastify) {
       }
 
       return session;
+    },
+  );
+
+  fastify.get(
+    "/:sessionId/actions",
+    {
+      preHandler: [fastify.authenticate],
+    },
+    async (request) => {
+      const { sessionId } = request.params;
+
+      return getSessionActions(sessionId);
     },
   );
 

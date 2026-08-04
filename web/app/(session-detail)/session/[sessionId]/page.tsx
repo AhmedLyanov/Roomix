@@ -83,7 +83,8 @@ export default function SessionPage() {
         </div>
 
         <div className="pt-2 grid grid-cols-2 gap-2 ">
-          <SessionActions />
+          <SessionActions sessionId={session._id} />
+
           <SessionChat session={session} />
         </div>
       </div>
