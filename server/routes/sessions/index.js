@@ -2,8 +2,8 @@ import {
   getSessions,
   getSession,
   deleteSession,
+  getSessionActions
 } from "../../services/session.service.js";
-import { getSessionActions } from "../../services/session-action.service.js";
 
 export default async function (fastify) {
   fastify.get(

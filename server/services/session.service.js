@@ -1,5 +1,35 @@
 import Session from "../models/Session.model.js";
-import { createSessionAction } from "./session-action.service.js";
+import SessionAction from "../models/SessionAction.model.js";
+
+
+async function createSessionAction({
+  sessionId,
+  type,
+  userId,
+  metadata = {},
+}) {
+  try {
+    const action = await SessionAction.create({
+      sessionId,
+      type,
+      userId,
+      metadata,
+    });
+
+    return action;
+  } catch (error) {
+    console.error("Failed to create session action:", error);
+    throw error;
+  }
+}
+
+export async function getSessionActions(sessionId) {
+  return SessionAction.find({
+    sessionId,
+  }).sort({
+    createdAt: 1,
+  });
+}
 
 export async function createSession({
   roomId,
@@ -22,7 +52,6 @@ export async function createSession({
     ownerId,
     ownerName,
     startedAt: new Date(),
-
     participants: [
       {
         userId: ownerId,
@@ -38,7 +67,6 @@ export async function createSession({
     sessionId: session._id,
     type: "SESSION_STARTED",
     userId: ownerId,
-
     metadata: {
       ownerName,
     },
@@ -76,11 +104,11 @@ export async function joinParticipant({
   });
 
   await session.save();
+  
   await createSessionAction({
     sessionId: session._id,
     type: "PARTICIPANT_JOINED",
     userId,
-
     metadata: {
       userName,
     },
@@ -88,6 +116,7 @@ export async function joinParticipant({
 
   return session;
 }
+
 export async function updateParticipantLanguage({ roomId, userId, language }) {
   const session = await Session.findOne({
     roomId,

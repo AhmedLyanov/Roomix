@@ -1,7 +1,6 @@
-// Константы
 const AUDIO_PAUSE_TIMEOUT_MS = 1500;
-const MAX_AUDIO_BUFFER_BYTES = 64000; // ~2 секунды аудио при 16kHz 16-bit mono
-const MIN_AUDIO_SIZE_BYTES = 3200; // ~100ms аудио
+const MAX_AUDIO_BUFFER_BYTES = 64000; 
+const MIN_AUDIO_SIZE_BYTES = 3200; 
 
 export class SpeechService {
   constructor() {
@@ -27,7 +26,6 @@ export class SpeechService {
       clearTimeout(this.processingTimers.get(socketId));
     }
     
-    // Отправляем если накопилось достаточно аудио или прошло время паузы
     if (buffer.totalBytes >= MAX_AUDIO_BUFFER_BYTES) {
       await this.processBuffer(socketId, speaker, callback);
     } else {
