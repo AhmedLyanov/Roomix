@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import {
   ModesIcon,
   JoinIcon,
@@ -32,8 +34,9 @@ export default function Aside() {
       "
     >
       <div>
-        <Logo />
-
+        <Link href="/">
+          <Logo />
+        </Link>
         <div className="mt-28 flex flex-col justify-start gap-1">
           <Button icon={<ModesIcon />}>Modes</Button>
 

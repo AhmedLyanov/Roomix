@@ -20,11 +20,11 @@ export default function SessionActions({ sessionId }: Props) {
         <div className="flex flex-col gap-8">
           {[1, 2, 3].map((i) => (
             <div key={i} className="grid grid-cols-[170px_40px_1fr] gap-6">
-              <div className="h-4 w-20 animate-pulse rounded bg-gray-200" />
-              <div className="h-8 w-8 animate-pulse rounded-full bg-gray-200" />
+              <div className="h-4 w-20 animate-pulse rounded bg-(--color-surface-strong)" />
+              <div className="h-8 w-8 animate-pulse rounded-full bg-(--color-surface-strong)" />
               <div className="space-y-2">
-                <div className="h-4 w-40 animate-pulse rounded bg-gray-200" />
-                <div className="h-3 w-24 animate-pulse rounded bg-gray-200" />
+                <div className="h-4 w-40 animate-pulse rounded bg-(--color-surface-strong)" />
+                <div className="h-3 w-24 animate-pulse rounded bg-(--color-surface-strong)" />
               </div>
             </div>
           ))}
@@ -86,7 +86,7 @@ export default function SessionActions({ sessionId }: Props) {
                     className="
                       absolute
                       top-8
-                      bottom-[-40px]
+                      bottom-10
                       w-px
                       bg-(--primary-border)
                     "

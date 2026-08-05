@@ -38,7 +38,7 @@ export default fp(async function (fastify) {
 
         const room = rooms.get(roomId);
 
-        room.set(socket.id, {
+        const participant = {
           socketId: socket.id,
           userId,
           userName,
@@ -46,7 +46,9 @@ export default fp(async function (fastify) {
           cameraEnabled: true,
           microphoneEnabled: true,
           userAvatar,
-        });
+        };
+
+        room.set(socket.id, participant);
 
         users.set(socket.id, {
           userId,
@@ -56,48 +58,57 @@ export default fp(async function (fastify) {
           userAvatar,
         });
 
-        const session = await createSession({
-          roomId,
-          ownerId: userId,
-          ownerName: userName,
-          ownerAvatar: userAvatar,
-          language: nativeLanguage,
-        });
+        const existingUsers = Array.from(room.values())
+          .filter((user) => user.socketId !== socket.id)
+          .map((user) => ({
+            socketId: user.socketId,
+            userName: user.userName,
+            userAvatar: user.userAvatar,
+            cameraEnabled: user.cameraEnabled,
+            microphoneEnabled: user.microphoneEnabled,
+          }));
 
-        if (session.ownerId !== userId) {
-          await joinParticipant({
-            roomId,
-            userId,
-            userName,
-            avatar: userAvatar,
-            language: nativeLanguage,
+        if (existingUsers.length) {
+          socket.emit("existing-users", {
+            users: existingUsers,
           });
         }
 
-        const existingUsers = Array.from(room.values())
-          .filter((participant) => participant.socketId !== socket.id)
-          .map((participant) => ({
-            socketId: participant.socketId,
-            userName: participant.userName,
-            userAvatar: participant.userAvatar,
-            cameraEnabled: participant.cameraEnabled,
-            microphoneEnabled: participant.microphoneEnabled,
-          }));
-
-        if (existingUsers.length > 0) {
-          socket.emit("existing-users", { users: existingUsers });
-        }
-
-        const participant = room.get(socket.id);
-
         socket.to(roomId).emit("user-connected", {
-          socketId: socket.id,
-          userId,
-          userName,
-          userAvatar,
+          socketId: participant.socketId,
+          userId: participant.userId,
+          userName: participant.userName,
+          userAvatar: participant.userAvatar,
           cameraEnabled: participant.cameraEnabled,
           microphoneEnabled: participant.microphoneEnabled,
         });
+
+
+        try {
+          const session = await createSession({
+            roomId,
+            ownerId: userId,
+            ownerName: userName,
+            ownerAvatar: userAvatar,
+            language: nativeLanguage,
+          });
+
+
+          if (!users.has(socket.id)) {
+            return;
+          }
+          if (String(session.ownerId) !== userId) {
+            await joinParticipant({
+              roomId,
+              userId,
+              userName,
+              avatar: userAvatar,
+              language: nativeLanguage,
+            });
+          }
+        } catch (error) {
+          fastify.log.error(error);
+        }
       },
     );
 

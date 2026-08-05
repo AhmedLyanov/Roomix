@@ -35,7 +35,7 @@ export function SessionHistoryItem({
       "
     >
       <Typography className="text-(--table-meta-data)">
-        Session #{total - index}
+        Session {total - index}
       </Typography>
 
       <div className="flex items-center gap-2">

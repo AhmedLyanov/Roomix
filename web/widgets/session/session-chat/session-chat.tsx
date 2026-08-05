@@ -2,7 +2,6 @@ import { Typography } from "@/shared";
 import { RoomMessage, getRoomMessages } from "@/entities/message";
 import { Session } from "@/entities/session";
 import { useEffect, useState } from "react";
-import { Spinner } from "@/shared";
 import { MessageNone } from "@/shared/icons/24";
 
 interface Props {
@@ -96,13 +95,21 @@ export default function SessionChat({ session }: Props) {
         <div>
           <div className="max-h-[400px] overflow-y-auto pr-2">
             {loading ? (
-              <div className="flex justify-center items-center py-8">
-                <Spinner />
+              <div className="flex flex-col gap-4 py-4">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="flex items-start">
+                    <div className="w-10 h-10 rounded-full bg-(--color-surface-strong) animate-pulse shrink-0" />
+                    <div className="ml-4 flex-1 space-y-2">
+                      <div className="h-4 w-32 bg-(--color-surface-strong) animate-pulse rounded" />
+                      <div className="h-3 w-48 bg-(--color-surface-strong) animate-pulse rounded" />
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8">
-                <MessageNone className="w-16 h-16 text-gray-400 mb-3" />
-                <Typography variant="body" className="text-gray-500">
+                <MessageNone className="w-16 h-16 text-(--color-gray) mb-3" />
+                <Typography variant="body" className="text-(--color-gray)">
                   No messages
                 </Typography>
               </div>
