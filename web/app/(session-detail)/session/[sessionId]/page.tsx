@@ -11,7 +11,7 @@ import {
   SessionActions,
   SessionChat,
 } from "@/widgets/session";
-import { ErrorNetwork } from "@/shared/icons/24";
+import { ErrorSession } from "@/shared/icons/24";
 
 import { Spinner, Typography, Button } from "@/shared";
 import { useSession } from "@/entities/session";
@@ -49,7 +49,7 @@ export default function SessionPage() {
   
           "
           >
-            <ErrorNetwork className="h-10 w-10" />
+            <ErrorSession className="h-20 w-20" />
           </div>
 
           <Typography variant="h2" className="mb-2">
@@ -82,10 +82,13 @@ export default function SessionPage() {
           <SessionFiles />
         </div>
 
-        <div className="pt-2 grid grid-cols-2 gap-2 ">
-          <SessionActions sessionId={session._id} />
-
-          <SessionChat session={session} />
+        <div className="pt-2 grid grid-cols-2 gap-2">
+          <div className="h-[calc(100vh-420px)] min-h-[400px]">
+            <SessionActions sessionId={session._id} />
+          </div>
+          <div className="h-[calc(100vh-420px)] min-h-[400px]">
+            <SessionChat session={session} />
+          </div>
         </div>
       </div>
     </div>
