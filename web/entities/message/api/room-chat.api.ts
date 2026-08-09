@@ -6,3 +6,9 @@ export async function getRoomMessages(roomId: string): Promise<RoomMessage[]> {
 
   return data;
 }
+
+export async function getRoomFiles(roomId: string): Promise<RoomMessage[]> {
+  const { data } = await api.get<RoomMessage[]>(`/chat/${roomId}/files`);
+
+  return data;
+}

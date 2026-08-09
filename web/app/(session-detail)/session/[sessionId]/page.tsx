@@ -79,7 +79,7 @@ export default function SessionPage() {
         <div className="grid grid-cols-3 gap-2 pt-2">
           <SessionParticipants session={session} />
           <SessionAi />
-          <SessionFiles />
+          <SessionFiles roomId={session.roomId} />
         </div>
 
         <div className="pt-2 grid grid-cols-2 gap-2">

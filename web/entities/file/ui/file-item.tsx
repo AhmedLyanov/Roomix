@@ -1,5 +1,3 @@
-"use client";
-
 import { DownloadIcon } from "@/shared/icons/24";
 import { Typography } from "@/shared";
 
@@ -30,7 +28,6 @@ export function FileItem({ file, onDownload }: Props) {
         px-3
         py-2
         transition-colors
-
         hover:bg-(--plugin-item-bg-hover)
       "
     >
@@ -70,12 +67,12 @@ export function FileItem({ file, onDownload }: Props) {
 
       <div className="flex items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
         <button
+          type="button"
           onClick={() => onDownload?.(file)}
           className="
             rounded-lg
             p-2
             text-(--color-gray)
-
             hover:bg-(--button-hover-bg)
             hover:text-(--color-foreground)
           "

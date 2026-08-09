@@ -1,4 +1,5 @@
-import { NextIcon, SendMessage, SendBinaryFiles } from "@/shared/icons/24";
+import { NextIcon, SendMessage } from "@/shared/icons/24";
+import { UploadFileButton } from "@/features/upload-file";
 import { Typography, Spinner } from "@/shared";
 import { useEffect, useState } from "react";
 import { RoomMessage, getRoomMessages } from "@/entities/message";
@@ -112,9 +113,8 @@ export default function RoomChat({
       </div>
       <div className="bg-(--color-chat-input) rounded-[17px] border-t border-(--color-surface-strong) border-opacity-15 flex-shrink-0">
         <div className="flex items-center gap-2 px-4">
-          <button className="flex-shrink-0">
-            <SendBinaryFiles />
-          </button>
+          <UploadFileButton roomId={roomId} />
+
           <input
             value={text}
             onChange={(e) => setText(e.target.value)}
