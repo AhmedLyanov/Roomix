@@ -43,12 +43,6 @@ export function RemoteVideoCard({
     videoRef.current.srcObject = stream;
   }, [stream]);
 
-  useEffect(() => {
-    console.log("[RemoteVideoCard] avatar:", avatar);
-    console.log("[RemoteVideoCard] userName:", userName);
-    console.log("[RemoteVideoCard] cameraEnabled:", cameraEnabled);
-  }, [avatar, userName, cameraEnabled]);
-
   const handleImageError = () => {
     console.error("[RemoteVideoCard] Failed to load avatar image:", avatar);
     setImageError(true);

@@ -171,8 +171,6 @@ export function useSocket({
     });
 
     socket.on("existing-users", ({ users }: ExistingUsersPayload) => {
-      console.log("[existing-users] received:", users);
-
       users.forEach(
         ({
           socketId,

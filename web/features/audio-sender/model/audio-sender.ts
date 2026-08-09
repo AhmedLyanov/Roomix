@@ -86,11 +86,6 @@ export class AudioSender {
       }, CLIENT_SEND_INTERVAL_MS);
 
       this.isActive = true;
-
-      console.log(
-        "[AudioSender] started, translation:",
-        this.isTranslationEnabled,
-      );
     } catch (error) {
       console.error("[AudioSender] Start error:", error);
 
@@ -231,8 +226,6 @@ export class AudioSender {
 
   setTranslationEnabled(enabled: boolean): void {
     this.isTranslationEnabled = enabled;
-
-    console.log("[AudioSender] Translation:", enabled ? "ON" : "OFF");
 
     if (!enabled) {
       this.chunkBuffer = [];

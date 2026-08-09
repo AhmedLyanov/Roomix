@@ -1,6 +1,10 @@
 "use client";
 
-import { LoginOutlined, UserAddOutlined } from "@ant-design/icons";
+import {
+  LoginOutlined,
+  UserAddOutlined,
+  FileOutlined,
+} from "@ant-design/icons";
 import { useSessionActions } from "@/entities/session-actions";
 import { Typography } from "@/shared";
 
@@ -10,7 +14,6 @@ interface Props {
 
 export default function SessionActions({ sessionId }: Props) {
   const { data: actions = [], isLoading } = useSessionActions(sessionId);
-
   if (isLoading) {
     return (
       <div className="rounded-xl bg-(--table-meta-bg) p-6">
@@ -37,16 +40,25 @@ export default function SessionActions({ sessionId }: Props) {
     switch (type) {
       case "SESSION_STARTED":
         return {
-          icon: <LoginOutlined className="text-white text-[16px]" />,
+          icon: <LoginOutlined />,
           bg: "bg-green-500",
           label: "Session Started",
         };
+
       case "PARTICIPANT_JOINED":
         return {
-          icon: <UserAddOutlined className="text-white text-[16px]" />,
+          icon: <UserAddOutlined />,
           bg: "bg-blue-500",
           label: "Participant Joined",
         };
+
+      case "FILE_UPLOADED":
+        return {
+          icon: <FileOutlined />,
+          bg: "bg-purple-500",
+          label: "File Uploaded",
+        };
+
       default:
         return {
           icon: null,
@@ -119,9 +131,11 @@ export default function SessionActions({ sessionId }: Props) {
                 </Typography>
 
                 <Typography variant="body" className="text-(--color-gray)">
-                  {action.metadata?.ownerName ||
-                    action.metadata?.userName ||
-                    "User action"}
+                  {action.type === "FILE_UPLOADED"
+                    ? action.metadata?.fileName
+                    : action.metadata?.ownerName ||
+                      action.metadata?.userName ||
+                      "User action"}
                 </Typography>
               </div>
             </div>

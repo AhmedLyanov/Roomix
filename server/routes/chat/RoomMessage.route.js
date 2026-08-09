@@ -6,6 +6,9 @@ import { createWriteStream } from "node:fs";
 
 import RoomMessage from "../../models/RoomMessage.model.js";
 import User from "../../models/User.js";
+import Session from "../../models/Session.model.js";
+
+import { createSessionAction } from "../../services/session-action.service.js";
 
 export default async function chatRoutes(fastify) {
   fastify.get("/:roomId/messages", async (request, reply) => {
@@ -86,6 +89,7 @@ export default async function chatRoutes(fastify) {
           roomId,
 
           senderId: user.clerkId,
+
           senderName:
             user.username || `${user.firstName} ${user.lastName}`.trim(),
 
@@ -101,6 +105,34 @@ export default async function chatRoutes(fastify) {
             url: `/uploads/${storedName}`,
           },
         });
+
+    
+
+        const session = await Session.findOne({
+          roomId,
+          endedAt: { $exists: false },
+        });
+
+
+        if (session) {
+          const action = await createSessionAction({
+            sessionId: session._id,
+            type: "FILE_UPLOADED",
+            userId,
+            metadata: {
+              fileName: data.filename,
+              fileSize: stats.size,
+              mimeType: data.mimetype,
+              messageId: message._id,
+            },
+          });
+
+
+        } else {
+          return reply.code(404).send({
+            message: "Session not found",
+          })
+        }
 
         fastify.io.to(roomId).emit("chat:new", message);
 
