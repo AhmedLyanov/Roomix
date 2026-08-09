@@ -4,7 +4,7 @@ import { ClerkProvider, useAuth } from "@clerk/nextjs";
 import { useTheme } from "next-themes";
 import { useEffect } from "react";
 
-import { setAccessTokenGetter } from "@/shared/api/token";
+import { setAccessTokenGetter } from "@/src/shared/api/token";
 
 interface Props {
   children: React.ReactNode;

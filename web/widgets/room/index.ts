@@ -1,1 +1,0 @@
-export {default as RoomClient} from "./ui/room-client";

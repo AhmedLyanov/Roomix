@@ -1,5 +1,5 @@
-import { Aside } from "@/widgets/aside";
-import { Header } from "@/widgets/header";
+import { Aside } from "@/src/widgets/aside";
+import { Header } from "@/src/widgets/header";
 
 export default function DashboardLayout({
   children,

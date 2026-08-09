@@ -10,18 +10,18 @@ import {
   useRoomSession,
   RoomLayoutSwitcher,
   RoomSidebar,
-} from "@/features";
+} from "@/src/features";
 
-import { Button } from "@/shared";
+import { Button } from "@/src/shared";
 
 import {
   SettingsIcon,
   QuestionIcon,
   LightningIcon,
   NextIcon,
-} from "@/shared/icons/24";
+} from "@/src/shared/icons/24";
 
-import { RoomClient } from "@/widgets/room";
+import { RoomClient } from "@/src/widgets/room";
 
 export default function RoomPage() {
   // console.count("RoomPage");

@@ -10,11 +10,11 @@ import {
   SessionFiles,
   SessionActions,
   SessionChat,
-} from "@/widgets/session";
-import { ErrorSession } from "@/shared/icons/24";
+} from "@/src/widgets/session";
+import { ErrorSession } from "@/src/shared/icons/24";
 
-import { Spinner, Typography, Button } from "@/shared";
-import { useSession } from "@/entities/session";
+import { Spinner, Typography, Button } from "@/src/shared";
+import { useSession } from "@/src/entities/session";
 import Link from "next/link";
 
 export default function SessionPage() {

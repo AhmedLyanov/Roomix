@@ -2,12 +2,15 @@
 
 import { useUser } from "@clerk/nextjs";
 
-import { Typography } from "@/shared";
-import { BroadcastIcon, LessonIcon, MeetingIcon } from "@/shared/icons/24";
+import { Typography } from "@/src/shared";
+import { BroadcastIcon, LessonIcon, MeetingIcon } from "@/src/shared/icons/24";
 
-import { SessionModeCard, useCreateSession } from "@/features/create-lesson";
+import {
+  SessionModeCard,
+  useCreateSession,
+} from "@/src/features/create-lesson";
 
-import { SessionsList } from "@/widgets/sessions-list";
+import { SessionsList } from "@/src/widgets/sessions-list";
 
 export default function DashboardPage() {
   const { user, isLoaded } = useUser();

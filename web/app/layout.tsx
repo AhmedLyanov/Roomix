@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { apercu, lato } from "@/public/fonts";
 
 import { ThemeProvider } from "@/app/providers/theme/theme-provider";
-import { QueryProvider } from "@/shared/provider/query-provider";
+import { QueryProvider } from "@/src/shared/provider/query-provider";
 import { AntdProvider } from "./providers/antd/antd-provider";
 import { AppClerkProvider } from "@/app/providers/clerk/clerk-provider";
 
