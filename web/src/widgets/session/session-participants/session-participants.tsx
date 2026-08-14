@@ -24,12 +24,12 @@ export default function SessionParticipants({ session }: Props) {
   const isLoading = !session?.participants;
 
   return (
-    <div className="rounded-lg bg-(--table-meta-bg) p-5">
-      <Typography variant="caption" className="text-[17px]">
+    <div className="rounded-lg bg-(--table-meta-bg) p-5 h-[320px] flex flex-col">
+      <Typography variant="caption" className="text-[17px] shrink-0">
         Participants ({isLoading ? "..." : session.participants.length})
       </Typography>
 
-      <div className="pt-2">
+      <div className="pt-2 flex-1 overflow-y-auto min-h-0">
         {isLoading ? (
           <>
             {[1, 2, 3, 4, 5].map((i) => (
@@ -47,7 +47,7 @@ export default function SessionParticipants({ session }: Props) {
       </div>
 
       {!isLoading && session.participants.length > 4 && (
-        <div className="pt-7.5">
+        <div className="pt-7.5 shrink-0">
           <Button variant="ghost" className="font-normal">
             View all participants
           </Button>

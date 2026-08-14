@@ -35,6 +35,14 @@ export function ChatMessage({ message }: ChatMessageProps) {
     return colors[index % colors.length];
   };
 
+  const truncateFileName = (name: string, maxLength: number = 10) => {
+    if (name.length <= maxLength) return name;
+    const extension = name.split(".").pop() || "";
+    const nameWithoutExt = name.slice(0, name.lastIndexOf("."));
+    const truncated = nameWithoutExt.slice(0, maxLength - extension.length - 3);
+    return `${truncated}...${extension ? `.${extension}` : ""}`;
+  };
+
   return (
     <div className="flex gap-3">
       {message.senderAvatar ? (
@@ -53,17 +61,19 @@ export function ChatMessage({ message }: ChatMessageProps) {
         </div>
       )}
 
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <Typography className="font-semibold">{message.senderName}</Typography>
 
-        {message.type === "text" && <Typography>{message.text}</Typography>}
+        {message.type === "text" && (
+          <Typography variant="caption">{message.text}</Typography>
+        )}
 
         {message.type === "file" && message.file && (
-          <div className="mt-2">
+          <div className="mt-2 max-w-full">
             <FileItem
               file={{
                 id: message._id,
-                name: message.file.originalName,
+                name: truncateFileName(message.file.originalName),
                 size: message.file.size,
                 extension: getFileExtension(message.file.originalName),
                 uploadedAt: message.createdAt,

@@ -53,13 +53,16 @@ export default function SessionFiles({ roomId }: Props) {
     <div
       className="
         rounded-lg
-       bg-(--table-meta-bg)
+        bg-(--table-meta-bg)
         p-4
+        h-[320px]
+        flex
+        flex-col
       "
     >
       <Typography>Files ({files.length})</Typography>
 
-      <div className="mt-3">
+      <div className="mt-3 flex-1 overflow-y-auto min-h-0">
         {loading ? (
           <div className="flex flex-col gap-3">
             {[1, 2, 3].map((item) => (
