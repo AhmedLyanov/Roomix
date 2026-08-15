@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 
 import type { UseRoomSessionProps } from "../model/types";
 import { useSubtitles } from "../hooks/use-subtitles";
@@ -8,6 +8,20 @@ import { useMediaControls } from "../hooks/use-media-controls";
 import { useMedia } from "../hooks/use-media";
 import { usePeer } from "../hooks/use-peer";
 import { useSocket } from "../hooks/use-socket";
+
+export interface RoomMessage {
+  _id: string;
+  roomId: string;
+  senderId: string;
+  senderName: string;
+  senderAvatar?: string;
+  text?: string;
+  type: "text" | "file";
+  fileUrl?: string;
+  fileName?: string;
+  fileSize?: number;
+  createdAt: string;
+}
 
 export function useRoomSession({
   roomId,
@@ -20,6 +34,8 @@ export function useRoomSession({
 
   const { subtitles, setSubtitle, clearSubtitles } = useSubtitles();
 
+  const [messages, setMessages] = useState<RoomMessage[]>([]);
+
   const {
     peersRef,
     remoteVideos,
@@ -28,6 +44,10 @@ export function useRoomSession({
     destroyAllPeers,
     setOnSignal,
   } = usePeer(stream);
+
+  const handleChatMessage = useCallback((message: RoomMessage) => {
+    setMessages((prev) => [...prev, message]);
+  }, []);
 
   const {
     audioSenderRef,
@@ -51,6 +71,7 @@ export function useRoomSession({
     createPeer,
     removePeer,
     setSubtitle,
+    setMessage: handleChatMessage,
   });
 
   useEffect(() => {
@@ -78,12 +99,15 @@ export function useRoomSession({
     destroyAllPeers();
     stopStream();
     clearSubtitles();
+    setMessages([]);
   }, [disconnectSocket, destroyAllPeers, stopStream, clearSubtitles]);
+
   return {
     stream,
     remoteVideos,
     participants,
     subtitles,
+    messages,
 
     socketId,
     socketRef,

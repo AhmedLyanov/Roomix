@@ -19,6 +19,7 @@ import type {
   SignalData,
   MicrophoneUpdatePayload,
 } from "../model/types";
+import { RoomMessage } from "../model/use-room-session";
 
 interface UseSocketProps {
   roomId: string;
@@ -31,6 +32,7 @@ interface UseSocketProps {
   createPeer: (socketId: string, initiator: boolean) => Peer.Instance | null;
   removePeer: (socketId: string) => void;
   setSubtitle: (data: SubtitlePayload) => void;
+  setMessage: (message: RoomMessage) => void;
 }
 
 export function useSocket({
@@ -44,6 +46,7 @@ export function useSocket({
   createPeer,
   removePeer,
   setSubtitle,
+  setMessage,
 }: UseSocketProps) {
   const socketRef = useRef<Socket | null>(null);
   const audioSenderRef = useRef<AudioSender | null>(null);
@@ -222,6 +225,10 @@ export function useSocket({
 
     socket.on("subtitle", (data: SubtitlePayload) => {
       setSubtitle(data);
+    });
+
+    socket.on("chat:new", (message: RoomMessage) => {
+      setMessage(message);
     });
 
     socket.on("existing-users", ({ users }: ExistingUsersPayload) => {
@@ -409,6 +416,7 @@ export function useSocket({
     createPeer,
     removePeer,
     setSubtitle,
+    setMessage,
     peersRef,
   ]);
 
