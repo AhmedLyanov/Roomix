@@ -2,9 +2,7 @@
 
 import { useState } from "react";
 
-export function useFullscreen(
-  { autoEnterOnScreenShare = false } = { autoEnterOnScreenShare: false },
-) {
+export function useFullscreen() {
   const [fullscreenTarget, setFullscreenTarget] = useState<string | null>(null);
 
   const toggleFullscreen = async (el: HTMLElement | null, id?: string) => {

@@ -1,3 +1,10 @@
+export interface SessionParticipant {
+  userId: string;
+  userName: string;
+  userAvatar?: string;
+  language?: string;
+}
+
 export interface Session {
   _id: string;
   roomId: string;
@@ -10,20 +17,5 @@ export interface Session {
 
   duration: number;
 
-  participants: {
-    userId: string;
-    userName: string;
-  }[];
-}
-export interface Participant {
-  _id: string;
-
-  userId: string;
-  userName: string;
-  userAvatar: string;
-  avatar: string;
-  language: string;
-
-  joinedAt: string;
-  leftAt?: string;
+  participants: SessionParticipant[];
 }

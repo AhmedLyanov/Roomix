@@ -88,9 +88,7 @@ export default function RoomClient({
     layoutMode,
   );
 
-  const { toggleFullscreen } = useFullscreen({
-    autoEnterOnScreenShare: true,
-  });
+  const { toggleFullscreen } = useFullscreen();
 
   const remoteVideosArray = Array.from(remoteVideos.entries());
 

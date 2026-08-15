@@ -2,7 +2,7 @@
 
 import { useEffect, useCallback } from "react";
 
-import type { UseRoomSessionProps } from "../types";
+import type { UseRoomSessionProps } from "../model/types";
 import { useSubtitles } from "../hooks/use-subtitles";
 import { useMediaControls } from "../hooks/use-media-controls";
 import { useMedia } from "../hooks/use-media";

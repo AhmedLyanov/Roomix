@@ -18,7 +18,7 @@ import type {
   Participant,
   SignalData,
   MicrophoneUpdatePayload,
-} from "../types";
+} from "../model/types";
 
 interface UseSocketProps {
   roomId: string;
@@ -241,6 +241,7 @@ export function useSocket({
             const next = new Map(prev);
 
             next.set(socketId, {
+              userId,
               userName,
               userAvatar,
               cameraEnabled,
@@ -272,6 +273,7 @@ export function useSocket({
           const next = new Map(prev);
 
           next.set(socketId, {
+            userId,
             userName,
             userAvatar,
             cameraEnabled,
@@ -330,10 +332,16 @@ export function useSocket({
       let peer = peersRef.current.get(from);
 
       if (!peer) {
-        peer = createPeer(from, false);
+        const createdPeer = createPeer(from, false);
+
+        if (!createdPeer) {
+          return;
+        }
+
+        peer = createdPeer;
       }
 
-      peer?.signal(offer);
+      peer.signal(offer);
     });
 
     socket.on("answer", ({ answer, from }: AnswerPayload) => {

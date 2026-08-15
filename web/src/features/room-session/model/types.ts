@@ -26,6 +26,7 @@ export interface UseRoomSessionProps {
 }
 
 export interface Participant {
+  userId: string;
   userName: string;
   userAvatar?: string;
   cameraEnabled: boolean;

@@ -2,7 +2,7 @@
 
 import { useRef, useState, useCallback } from "react";
 import Peer from "simple-peer";
-import type { SignalData } from "../types";
+import type { SignalData } from "../model/types";
 
 export function usePeer(stream: MediaStream | null) {
   const peersRef = useRef<Map<string, Peer.Instance>>(new Map());

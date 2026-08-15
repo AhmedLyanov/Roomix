@@ -1,38 +1,42 @@
 import { Typography } from "@/src/shared";
-import { Participant } from "@/src/entities/session";
+import type { SessionParticipant } from "@/src/entities/session";
 
 interface Props {
-  participant: Participant;
+  participant: SessionParticipant;
 }
 
 export default function ParticipantItem({ participant }: Props) {
+  const initials = participant.userName
+    .split(" ")
+    .map((word) => word[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
   return (
     <article className="flex items-center gap-3 rounded-lg py-3">
       {participant.userAvatar ? (
         <img
           src={participant.userAvatar}
           alt={participant.userName}
-          className="h-10 w-10 rounded-full object-cover flex-shrink-0"
+          className="h-10 w-10 flex-shrink-0 rounded-full object-cover"
         />
       ) : (
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-(--color-accent) text-sm font-bold text-white flex-shrink-0">
-          {participant.userName
-            .split(" ")
-            .map((word) => word[0])
-            .join("")
-            .slice(0, 2)
-            .toUpperCase()}
+        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-(--color-accent) text-sm font-bold text-white">
+          {initials}
         </div>
       )}
 
-      <div>
+      <div className="min-w-0">
         <Typography variant="caption" className="text-[17px]">
           {participant.userName}
         </Typography>
 
-        <Typography variant="body" className="text-(--color-gray)">
-          {participant.language.toUpperCase()}
-        </Typography>
+        {participant.language && (
+          <Typography variant="body" className="text-(--color-gray)">
+            {participant.language.toUpperCase()}
+          </Typography>
+        )}
       </div>
     </article>
   );

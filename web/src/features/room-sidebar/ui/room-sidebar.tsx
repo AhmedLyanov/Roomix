@@ -8,7 +8,7 @@ import {
 } from "@/src/shared/icons/24";
 
 import RoomChat from "./room-chat/room-chat";
-import { useRoomSession } from "@/features/room/model/use-room-session";
+import { useRoomSession } from "@/src/features/room-session";
 
 interface SidebarItem {
   id: string;
