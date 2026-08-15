@@ -2,7 +2,7 @@ import { Webhook } from "svix";
 import User from "../../models/User.js";
 
 export default async function clerkWebhook(fastify) {
-  fastify.post("/api/webhooks/clerk", async (req, reply) => {
+  fastify.post("/webhooks/clerk", async (req, reply) => {
     const SIGNING_SECRET = process.env.CLERK_WEBHOOK_SECRET;
 
     if (!SIGNING_SECRET) {
@@ -42,7 +42,7 @@ export default async function clerkWebhook(fastify) {
           username: data.username || data.first_name || "user",
           avatar: data.image_url,
         },
-        { upsert: true, new: true }
+        { upsert: true, new: true },
       );
     }
 
