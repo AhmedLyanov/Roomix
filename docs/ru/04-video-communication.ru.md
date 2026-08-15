@@ -1,8 +1,8 @@
-# Merriweather — WebRTC и видеосвязь
+# Roomix— WebRTC и видеосвязь
 
 ## 1. Назначение
 
-Видеосвязь — базовая realtime-функция Merriweather. Пользователи входят в одну комнату, получают доступ к камере и микрофону, устанавливают peer-to-peer соединения и видят медиапотоки друг друга.
+Видеосвязь — базовая realtime-функция Roomix. Пользователи входят в одну комнату, получают доступ к камере и микрофону, устанавливают peer-to-peer соединения и видят медиапотоки друг друга.
 
 В проекте WebRTC отвечает именно за передачу аудио/видео между браузерами. Socket.IO при этом не передаёт сам видеопоток. Он используется как signaling-канал: через него участники обмениваются данными, необходимыми для установления WebRTC-соединения.
 
@@ -95,9 +95,9 @@ microphone track
 Он хранит:
 
 ```ts
-peersRef
-remoteStreamsRef
-remoteVideos
+peersRef;
+remoteStreamsRef;
+remoteVideos;
 ```
 
 `peersRef` связывает `socketId` участника с его `simple-peer` instance.
@@ -141,10 +141,10 @@ useRoomSession
 Сам room UI не должен знать детали установления WebRTC-соединения. Он получает уже готовые данные:
 
 ```ts
-stream
-remoteVideos
-participants
-disconnect
+stream;
+remoteVideos;
+participants;
+disconnect;
 ```
 
 ---
@@ -160,7 +160,7 @@ disconnect
 `useRoomSession` запускает `useMedia`, после чего появляется локальный:
 
 ```ts
-MediaStream
+MediaStream;
 ```
 
 Этот stream передаётся в `usePeer`.
@@ -405,7 +405,7 @@ React state используется отдельно для данных, ко�
 Основная функция:
 
 ```ts
-createPeer(socketId, initiator)
+createPeer(socketId, initiator);
 ```
 
 Сначала проверяется локальный stream:
@@ -448,7 +448,7 @@ const peer = new Peer({
 Параметр:
 
 ```ts
-initiator
+initiator;
 ```
 
 определяет, какая сторона начинает negotiation.
@@ -462,7 +462,7 @@ existing-users
 Он вызывает:
 
 ```ts
-createPeer(socketId, true)
+createPeer(socketId, true);
 ```
 
 То есть для существующего пользователя он становится initiator.
@@ -476,7 +476,7 @@ user-connected
 он вызывает:
 
 ```ts
-createPeer(socketId, false)
+createPeer(socketId, false);
 ```
 
 Таким образом две стороны не должны одновременно хаотично создавать одну и ту же negotiation flow.
@@ -488,7 +488,7 @@ createPeer(socketId, false)
 При создании peer передаётся:
 
 ```ts
-stream
+stream;
 ```
 
 Это означает, что локальные audio/video tracks подключаются к WebRTC peer connection.
@@ -555,7 +555,7 @@ peer.on("signal", (data) => {
 Если:
 
 ```ts
-signalData.type === "offer"
+signalData.type === "offer";
 ```
 
 создаётся:
@@ -629,7 +629,7 @@ socket.on("offer", ({ offer, from }) => {
 Frontend определяет:
 
 ```ts
-signalData.type === "answer"
+signalData.type === "answer";
 ```
 
 и отправляет:
@@ -675,7 +675,7 @@ socket.on("answer", ({ answer, from }) => {
 В `simple-peer`:
 
 ```ts
-trickle: true
+trickle: true;
 ```
 
 означает, что ICE candidates могут отправляться постепенно по мере их обнаружения, а не ждать формирования одного большого signaling message.
@@ -683,7 +683,7 @@ trickle: true
 Когда `signal` содержит не `offer` и не `answer`, код трактует его как:
 
 ```ts
-ice-candidate
+ice - candidate;
 ```
 
 и отправляет:
@@ -737,7 +737,7 @@ iceServers: [
   {
     urls: "stun:stun.l.google.com:19302",
   },
-]
+];
 ```
 
 STUN помогает браузеру определить информацию о своём сетевом расположении и найти потенциальный путь до другого peer.
@@ -748,7 +748,7 @@ STUN помогает браузеру определить информацию
 
 В сложных сетях, NAT и firewall условиях одного STUN может быть недостаточно. TURN обычно используется как relay fallback, когда прямое peer-to-peer соединение невозможно.
 
-Но документация проекта должна отражать фактическую конфигурацию, а не приписывать Merriweather TURN infrastructure, которой в исходном коде нет.
+Но документация проекта должна отражать фактическую конфигурацию, а не приписывать RoomixTURN infrastructure, которой в исходном коде нет.
 
 ---
 
@@ -760,9 +760,7 @@ STUN помогает браузеру определить информацию
 peer.on("stream", (remoteStream) => {
   remoteStreamsRef.current.set(socketId, remoteStream);
 
-  setRemoteVideos(
-    new Map(remoteStreamsRef.current)
-  );
+  setRemoteVideos(new Map(remoteStreamsRef.current));
 });
 ```
 
@@ -798,9 +796,7 @@ React UI
 Поэтому после изменения ref создаётся новый Map:
 
 ```ts
-setRemoteVideos(
-  new Map(remoteStreamsRef.current)
-);
+setRemoteVideos(new Map(remoteStreamsRef.current));
 ```
 
 React получает новый объект состояния и выполняет render.
@@ -851,9 +847,7 @@ peersRef.current.delete(socketId);
 
 remoteStreamsRef.current.delete(socketId);
 
-setRemoteVideos(
-  new Map(remoteStreamsRef.current)
-);
+setRemoteVideos(new Map(remoteStreamsRef.current));
 ```
 
 То есть удаляются сразу:
@@ -1164,7 +1158,7 @@ N × (N - 1) / 2
 
 Для масштабирования обычно применяют SFU architecture.
 
-Но Merriweather не использует SFU в текущей реализации, поэтому не следует говорить, что проект построен на SFU.
+Но Roomixне использует SFU в текущей реализации, поэтому не следует говорить, что проект построен на SFU.
 
 ---
 
@@ -1265,25 +1259,25 @@ subtitle state
 Для peer connections:
 
 ```ts
-destroyAllPeers()
+destroyAllPeers();
 ```
 
 Для локального media:
 
 ```ts
-stopStream()
+stopStream();
 ```
 
 Для Socket.IO:
 
 ```ts
-disconnectSocket()
+disconnectSocket();
 ```
 
 Для translation subtitle state:
 
 ```ts
-clearSubtitles()
+clearSubtitles();
 ```
 
 Это особенно важно в React development environment, где Strict Mode может выполнять mount → cleanup → mount.
@@ -1374,17 +1368,17 @@ audio frame
 
 ## 34. Главные Socket.IO события WebRTC
 
-| Event | Direction | Назначение |
-|---|---|---|
-| `join-room` | client → server | вход пользователя в комнату |
-| `existing-users` | server → client | список уже находящихся участников |
-| `user-connected` | server → client | новый участник появился |
-| `offer` | client → server → client | передача WebRTC offer |
-| `answer` | client → server → client | передача WebRTC answer |
-| `ice-candidate` | client → server → client | передача ICE signaling data |
-| `user-disconnected` | server → client | удаление участника |
-| `camera:update` | client → server → clients | состояние камеры |
-| `mic:update` | client → server → clients | состояние микрофона |
+| Event               | Direction                 | Назначение                        |
+| ------------------- | ------------------------- | --------------------------------- |
+| `join-room`         | client → server           | вход пользователя в комнату       |
+| `existing-users`    | server → client           | список уже находящихся участников |
+| `user-connected`    | server → client           | новый участник появился           |
+| `offer`             | client → server → client  | передача WebRTC offer             |
+| `answer`            | client → server → client  | передача WebRTC answer            |
+| `ice-candidate`     | client → server → client  | передача ICE signaling data       |
+| `user-disconnected` | server → client           | удаление участника                |
+| `camera:update`     | client → server → clients | состояние камеры                  |
+| `mic:update`        | client → server → clients | состояние микрофона               |
 
 ---
 
@@ -1546,7 +1540,7 @@ remoteVideos
 React UI
 ```
 
-Это и есть основная цепочка видеосвязи Merriweather.
+Это и есть основная цепочка видеосвязи Roomix.
 
 ---
 
@@ -1667,10 +1661,10 @@ HTTP API использует authentication middleware, но signaling layer с
 
 ## 43. Итоговая архитектура
 
-Merriweather разделяет realtime communication на несколько уровней:
+Roomixразделяет realtime communication на несколько уровней:
 
 ```text
-                    Merriweather Room
+                    RoomixRoom
                            |
               +------------+------------+
               |                         |

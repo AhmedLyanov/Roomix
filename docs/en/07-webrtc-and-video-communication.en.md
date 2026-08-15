@@ -1,8 +1,8 @@
-# Merriweather — WebRTC and Video Communication
+# Roomix— WebRTC and Video Communication
 
 ## 1. Purpose
 
-Video communication is one of the core realtime features of Merriweather.
+Video communication is one of the core realtime features of Roomix.
 
 A user enters a room, grants the browser access to the camera and microphone, and the application creates WebRTC connections with other participants and receives their remote `MediaStream` objects.
 
@@ -427,7 +427,7 @@ UI state is stored separately.
 The main operation is conceptually:
 
 ```ts
-createPeer(socketId, initiator)
+createPeer(socketId, initiator);
 ```
 
 First, the local stream is checked:
@@ -478,7 +478,7 @@ existing-users
 and creates:
 
 ```ts
-createPeer(socketId, true)
+createPeer(socketId, true);
 ```
 
 The existing participant receives:
@@ -490,7 +490,7 @@ user-connected
 and creates:
 
 ```ts
-createPeer(socketId, false)
+createPeer(socketId, false);
 ```
 
 So:
@@ -548,7 +548,7 @@ WebRTC does not mean that two browsers automatically know how to connect.
 
 Before establishing the media connection, they must exchange negotiation information.
 
-Merriweather uses Socket.IO for this purpose.
+Roomixuses Socket.IO for this purpose.
 
 The main signaling events are:
 
@@ -713,7 +713,7 @@ iceServers: [
   {
     urls: "stun:stun.l.google.com:19302",
   },
-]
+];
 ```
 
 STUN helps the browser obtain network information needed to find a possible route between peers.
@@ -729,7 +729,7 @@ This is a limitation.
 
 In some NAT/firewall environments, direct connectivity may fail. TURN can act as a relay when a direct peer-to-peer path cannot be established.
 
-Therefore the documentation should not claim that Merriweather has a complete TURN infrastructure when the source code does not demonstrate it.
+Therefore the documentation should not claim that Roomixhas a complete TURN infrastructure when the source code does not demonstrate it.
 
 ---
 
@@ -782,9 +782,7 @@ After the WebRTC connection is established, the peer receives the remote stream:
 peer.on("stream", (remoteStream) => {
   remoteStreamsRef.current.set(socketId, remoteStream);
 
-  setRemoteVideos(
-    new Map(remoteStreamsRef.current)
-  );
+  setRemoteVideos(new Map(remoteStreamsRef.current));
 });
 ```
 
@@ -822,9 +820,7 @@ However, the UI must know when a stream appears or disappears.
 Therefore the application creates a new `Map`:
 
 ```ts
-setRemoteVideos(
-  new Map(remoteStreamsRef.current)
-);
+setRemoteVideos(new Map(remoteStreamsRef.current));
 ```
 
 The separation is:
@@ -1282,7 +1278,7 @@ mount
 If cleanup immediately calls:
 
 ```ts
-socket.disconnect()
+socket.disconnect();
 ```
 
 the backend may observe:
@@ -1339,17 +1335,17 @@ Actual media transport is handled by WebRTC.
 
 ## 34. Main Socket.IO events
 
-| Event | Direction | Purpose |
-|---|---|---|
-| `join-room` | client → server | join a room |
-| `existing-users` | server → client | existing participants |
-| `user-connected` | server → client | new participant |
-| `offer` | client → server → client | WebRTC offer |
-| `answer` | client → server → client | WebRTC answer |
-| `ice-candidate` | client → server → client | ICE signaling |
-| `user-disconnected` | server → client | remove participant |
-| `camera:update` | client → server → clients | camera state |
-| `mic:update` | client → server → clients | microphone state |
+| Event               | Direction                 | Purpose               |
+| ------------------- | ------------------------- | --------------------- |
+| `join-room`         | client → server           | join a room           |
+| `existing-users`    | server → client           | existing participants |
+| `user-connected`    | server → client           | new participant       |
+| `offer`             | client → server → client  | WebRTC offer          |
+| `answer`            | client → server → client  | WebRTC answer         |
+| `ice-candidate`     | client → server → client  | ICE signaling         |
+| `user-disconnected` | server → client           | remove participant    |
+| `camera:update`     | client → server → clients | camera state          |
+| `mic:update`        | client → server → clients | microphone state      |
 
 ---
 
@@ -1515,7 +1511,7 @@ remoteVideos
 React UI
 ```
 
-This is the main video communication chain in Merriweather.
+This is the main video communication chain in Roomix.
 
 ---
 
@@ -1546,7 +1542,7 @@ Without framework terminology:
 
 ### “Why is a signaling server needed?”
 
-> Two browsers need to exchange negotiation information such as offers, answers, and ICE candidates. In Merriweather, Socket.IO provides that signaling layer.
+> Two browsers need to exchange negotiation information such as offers, answers, and ICE candidates. In Roomix, Socket.IO provides that signaling layer.
 
 ### “Does Fastify transmit the video?”
 
@@ -1621,7 +1617,7 @@ This should be treated as a production-hardening area rather than something to c
 ## 43. Final architecture
 
 ```text
-                     Merriweather Room
+                     RoomixRoom
                             |
                +------------+------------+
                |                         |
@@ -1672,4 +1668,4 @@ Socket.IO tells peers how to establish the connection.
 
 WebRTC carries the actual audio and video.
 
-That separation is the key to understanding how Merriweather implements video communication, rather than merely knowing that the project uses `simple-peer`.
+That separation is the key to understanding how Roomiximplements video communication, rather than merely knowing that the project uses `simple-peer`.

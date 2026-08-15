@@ -10,15 +10,15 @@ import { AppClerkProvider } from "@/app/providers/clerk/clerk-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://merriweather.app"),
+  metadataBase: new URL("https://roomix.online "),
 
   title: {
-    default: "Merriweather",
-    template: "%s | Merriweather",
+    default: "Roomix",
+    template: "%s | Roomix",
   },
 
   description:
-    "Merriweather is a modern platform for online meetings, virtual classrooms, debates, and collaborative video conferencing.",
+    "Roomix is a modern platform for online meetings, virtual classrooms, debates, and collaborative video conferencing.",
 
   keywords: [
     "video conferencing",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     "remote collaboration",
     "debates",
     "meetings platform",
-    "Merriweather",
+    "Roomix",
   ],
 
   authors: [
@@ -43,18 +43,18 @@ export const metadata: Metadata = {
   creator: "Ahmad-al-Lyiany",
 
   openGraph: {
-    title: "Merriweather",
+    title: "Roomix",
     description:
       "Modern platform for online meetings, virtual classrooms, debates, and collaborative video conferencing.",
-    url: "https://merriweather.app",
-    siteName: "Merriweather",
+    url: "https://roomix.online",
+    siteName: "Roomix",
     locale: "en_US",
     type: "website",
   },
 
   twitter: {
     card: "summary_large_image",
-    title: "Merriweather",
+    title: "Roomix",
     description:
       "Modern platform for online meetings, virtual classrooms, debates, and collaborative video conferencing.",
   },

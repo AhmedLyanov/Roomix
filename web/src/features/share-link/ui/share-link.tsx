@@ -11,7 +11,7 @@ interface ShareLinkProps {
 export function ShareLink({
   link = typeof window !== "undefined"
     ? window.location.href
-    : "invite://merriweather.app",
+    : "invite://roomix.app",
 }: ShareLinkProps) {
   const [copied, setCopied] = useState(false);
 

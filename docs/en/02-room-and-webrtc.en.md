@@ -1,8 +1,8 @@
-# Merriweather — Room and WebRTC Architecture
+# Roomix— Room and WebRTC Architecture
 
 ## 1. Purpose of This Document
 
-This document explains how a user enters a Merriweather room, how realtime room state is maintained, and how two or more browsers establish live audio/video communication.
+This document explains how a user enters a Roomixroom, how realtime room state is maintained, and how two or more browsers establish live audio/video communication.
 
 The most important architectural distinction is:
 
@@ -64,7 +64,7 @@ user-disconnected
 
 ## 3. Room and Session Are Different Concepts
 
-Merriweather has both a realtime room and a persistent session.
+Roomixhas both a realtime room and a persistent session.
 
 ### Room
 
@@ -378,7 +378,7 @@ This gives the connection a clear negotiation direction.
 
 ## 12. WebRTC Peer Creation
 
-Merriweather uses `simple-peer` as an abstraction over the lower-level WebRTC APIs.
+Roomixuses `simple-peer` as an abstraction over the lower-level WebRTC APIs.
 
 A peer represents a WebRTC connection between two participants.
 
@@ -413,7 +413,7 @@ This allows the application to quickly find the WebRTC peer associated with a pa
 
 WebRTC requires signaling before browsers can establish a media connection.
 
-Merriweather uses Socket.IO as the signaling transport.
+Roomixuses Socket.IO as the signaling transport.
 
 The main signaling messages are:
 
@@ -503,7 +503,7 @@ WebRTC also needs to discover possible network paths between participants.
 
 These are represented by ICE candidates.
 
-Merriweather forwards:
+Roomixforwards:
 
 ```text
 ice-candidate
@@ -704,7 +704,7 @@ Who speaks what language?
 Who needs translation?
 ```
 
-Merriweather currently focuses on:
+Roomixcurrently focuses on:
 
 ```text
 Russian ↔ English
@@ -854,7 +854,7 @@ This is one reason production-scale conferencing systems commonly use an SFU arc
 
 ## 27. Why an SFU Is Not Currently Required
 
-Merriweather is a portfolio project rather than a large production conferencing platform.
+Roomixis a portfolio project rather than a large production conferencing platform.
 
 A mesh topology has several advantages here:
 
@@ -973,7 +973,7 @@ If asked how the video call works, the shortest technically correct explanation 
 
 If asked why Socket.IO is needed:
 
-> “WebRTC handles media transport, but the peers still need a signaling mechanism to exchange the information required to establish the connection. In Merriweather, Socket.IO provides that signaling layer.”
+> “WebRTC handles media transport, but the peers still need a signaling mechanism to exchange the information required to establish the connection. In Roomix, Socket.IO provides that signaling layer.”
 
 If asked how a new participant appears:
 
@@ -1009,7 +1009,7 @@ The core architecture can be reduced to five ideas:
 The architecture deliberately separates realtime transport from persistence:
 
 ```text
-                 Merriweather
+                 Roomix
                       │
           ┌───────────┴───────────┐
           │                       │

@@ -1,4 +1,4 @@
-# Merriweather — Session History / Action History
+# Roomix— Session History / Action History
 
 ## 1. Purpose
 
@@ -251,8 +251,8 @@ This is convenient for history queries such as:
 
 ```js
 SessionAction.find({
-  sessionId
-})
+  sessionId,
+});
 ```
 
 and allows the timeline to be retrieved independently.
@@ -337,7 +337,7 @@ Its metadata contains:
 
 ```js
 {
-  ownerName
+  ownerName;
 }
 ```
 
@@ -431,7 +431,7 @@ Metadata:
 
 ```js
 {
-  userName
+  userName;
 }
 ```
 
@@ -578,15 +578,15 @@ Messages are stored through `RoomMessage`, but `MESSAGE_SENT` is not created as 
 
 ## 13. Table of actual actions
 
-| Action | In enum | Actually created | Where | Metadata |
-|---|---:|---:|---|---|
-| `SESSION_STARTED` | Yes | Yes | `session.service.js → createSession()` | `{ ownerName }` |
-| `SESSION_ENDED` | Yes | No | None | No actual record |
-| `PARTICIPANT_JOINED` | Yes | Yes | `session.service.js → joinParticipant()` | `{ userName }` |
-| `PARTICIPANT_LEFT` | Yes | No | None | No actual record |
-| `FILE_UPLOADED` | Yes | Yes | `RoomMessage.route.js` | `fileName`, `fileSize`, `mimeType`, `messageId` |
-| `MESSAGE_SENT` | Yes | No | None | Message is stored in `RoomMessage` |
-| `SCREEN_SHARED` | Yes | No | None | No actual record |
+| Action               | In enum | Actually created | Where                                    | Metadata                                        |
+| -------------------- | ------: | ---------------: | ---------------------------------------- | ----------------------------------------------- |
+| `SESSION_STARTED`    |     Yes |              Yes | `session.service.js → createSession()`   | `{ ownerName }`                                 |
+| `SESSION_ENDED`      |     Yes |               No | None                                     | No actual record                                |
+| `PARTICIPANT_JOINED` |     Yes |              Yes | `session.service.js → joinParticipant()` | `{ userName }`                                  |
+| `PARTICIPANT_LEFT`   |     Yes |               No | None                                     | No actual record                                |
+| `FILE_UPLOADED`      |     Yes |              Yes | `RoomMessage.route.js`                   | `fileName`, `fileSize`, `mimeType`, `messageId` |
+| `MESSAGE_SENT`       |     Yes |               No | None                                     | Message is stored in `RoomMessage`              |
+| `SCREEN_SHARED`      |     Yes |               No | None                                     | No actual record                                |
 
 This is an important point when presenting the project: schema definitions and runtime behavior are not completely identical.
 
@@ -626,10 +626,10 @@ The service performs:
 
 ```js
 SessionAction.find({
-  sessionId
+  sessionId,
 }).sort({
-  createdAt: 1
-})
+  createdAt: 1,
+});
 ```
 
 The important part is:
@@ -698,8 +698,8 @@ It creates an API client conceptually like:
 
 ```ts
 axios.create({
-  baseURL: "http://localhost:5000"
-})
+  baseURL: "http://localhost:5000",
+});
 ```
 
 The request interceptor also obtains the access token:
@@ -727,14 +727,14 @@ get-session-actions.ts
 The function:
 
 ```ts
-getSessionActions(sessionId)
+getSessionActions(sessionId);
 ```
 
 performs:
 
 ```ts
 const { data } = await api.get<SessionAction[]>(
-  `/sessions/${sessionId}/actions`
+  `/sessions/${sessionId}/actions`,
 );
 ```
 
@@ -829,7 +829,7 @@ There are three important parts.
 The query key is:
 
 ```ts
-["session-actions", sessionId]
+["session-actions", sessionId];
 ```
 
 For example:
@@ -857,7 +857,7 @@ Therefore history from different Sessions is not mixed in the React Query cache.
 The query function is:
 
 ```ts
-() => getSessionActions(sessionId)
+() => getSessionActions(sessionId);
 ```
 
 React Query calls the API function.
@@ -887,7 +887,7 @@ GET /sessions/:sessionId/actions
 The hook uses:
 
 ```ts
-enabled: Boolean(sessionId)
+enabled: Boolean(sessionId);
 ```
 
 If:
@@ -1352,10 +1352,10 @@ MongoDB executes:
 
 ```js
 SessionAction.find({
-  sessionId: "abc"
+  sessionId: "abc",
 }).sort({
-  createdAt: 1
-})
+  createdAt: 1,
+});
 ```
 
 The result may be:
@@ -1775,7 +1775,7 @@ Handles file upload and creates `FILE_UPLOADED`.
 Reads actions from MongoDB:
 
 ```js
-SessionAction.find({ sessionId }).sort({ createdAt: 1 })
+SessionAction.find({ sessionId }).sort({ createdAt: 1 });
 ```
 
 ### `get-session-actions.ts`
@@ -1881,7 +1881,7 @@ createdAt ascending
 
 ## 47. Summary
 
-Session History in Merriweather is built around a simple conceptual model:
+Session History in Roomixis built around a simple conceptual model:
 
 ```text
 Session

@@ -1,11 +1,10 @@
-# Merriweather — Development and Deployment
+# Roomix— Development and Deployment
 
 > English version of the project development and deployment documentation. The technical scope follows the available project material and does not invent infrastructure that is not present in the source.
 
-
 ## 1. Document Purpose
 
-This document describes the practical side of developing Merriweather: how the individual parts of the project are started, which tools are used, how the environment is organized, which configuration boundaries exist between the frontend, backend, MongoDB, and Python speech/translation service, and which problems appeared during development.
+This document describes the practical side of developing Roomix: how the individual parts of the project are started, which tools are used, how the environment is organized, which configuration boundaries exist between the frontend, backend, MongoDB, and Python speech/translation service, and which problems appeared during development.
 
 Important: this document describes the development workflow that is actually supported by the available project material. A complete production deployment pipeline is not presented in the source material as finished infrastructure, so this document does not invent a Docker/Kubernetes/CI/CD layer that is not there.
 
@@ -16,7 +15,7 @@ Important: this document describes the development workflow that is actually sup
 The project is divided into several independent parts:
 
 ```text
-Merriweather/
+Roomix/
 │
 ├── web/
 │   └── Next.js / React frontend
@@ -382,7 +381,7 @@ The backend uses:
 An HTTP route is protected with:
 
 ```js
-preHandler: [fastify.authenticate]
+preHandler: [fastify.authenticate];
 ```
 
 Therefore, the development environment must contain correctly matched Clerk keys.
@@ -513,7 +512,7 @@ Recommended check order:
 During development, Next.js detected multiple lockfiles:
 
 ```text
-Merriweather/package-lock.json
+Roomix/package-lock.json
 web/bun.lock
 ```
 
@@ -989,7 +988,7 @@ Frontend должен обновить subtitle state.
 
 ## 27. Git Workflow
 
-Разработка Merriweather велась через Git.
+Разработка Roomixвелась через Git.
 
 В истории проекта присутствуют feature/fix commits, например:
 
@@ -1382,18 +1381,18 @@ rendering
 
 ## 40. Development vs. Production
 
-| Area | Development | Production goal |
-|---|---|---|
-| Frontend | Next.js dev server | Next.js production build/runtime |
-| Backend | Fastify watch mode | Fastify without watch |
-| MongoDB | remote/dev database | secured production database |
-| Clerk | development instance | production instance |
-| Socket.IO | one process | scalable realtime infrastructure |
-| WebRTC | STUN testing | STUN + reliable TURN |
-| Translation | local Python service | dedicated reliable ML runtime |
-| Logging | verbose debugging | structured operational logging |
-| Secrets | `.env.local` / environment | managed secrets |
-| Build | local | reproducible CI/CD build |
+| Area        | Development                | Production goal                  |
+| ----------- | -------------------------- | -------------------------------- |
+| Frontend    | Next.js dev server         | Next.js production build/runtime |
+| Backend     | Fastify watch mode         | Fastify without watch            |
+| MongoDB     | remote/dev database        | secured production database      |
+| Clerk       | development instance       | production instance              |
+| Socket.IO   | one process                | scalable realtime infrastructure |
+| WebRTC      | STUN testing               | STUN + reliable TURN             |
+| Translation | local Python service       | dedicated reliable ML runtime    |
+| Logging     | verbose debugging          | structured operational logging   |
+| Secrets     | `.env.local` / environment | managed secrets                  |
+| Build       | local                      | reproducible CI/CD build         |
 
 ---
 
@@ -1728,7 +1727,7 @@ For a portfolio project, an honest formulation is stronger:
 
 ## 51. Development Philosophy
 
-Merriweather полезно рассматривать не как набор отдельных features, а как систему asynchronous boundaries:
+Roomixполезно рассматривать не как набор отдельных features, а как систему asynchronous boundaries:
 
 ```text
 Browser
@@ -1839,7 +1838,7 @@ Short answer:
 
 ## 54. Final Summary
 
-The development architecture of Merriweather is based on independent runtime components:
+The development architecture of Roomixis based on independent runtime components:
 
 ```text
 Next.js

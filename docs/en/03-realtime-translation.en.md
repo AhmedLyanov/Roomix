@@ -1,8 +1,8 @@
-# Merriweather — Real-Time Speech Translation
+# Roomix— Real-Time Speech Translation
 
 ## 1. Purpose
 
-Real-time speech translation is one of Merriweather's main technical capabilities.
+Real-time speech translation is one of Roomix's main technical capabilities.
 
 The system allows participants in the same room to communicate using two supported languages:
 
@@ -184,7 +184,7 @@ This matches the format expected by the speech-to-text pipeline.
 The source is then created:
 
 ```typescript
-audioContext.createMediaStreamSource(stream)
+audioContext.createMediaStreamSource(stream);
 ```
 
 It connects the audio track from the existing `MediaStream` to the Web Audio API.
@@ -206,11 +206,7 @@ AudioContext
 Audio data is extracted using:
 
 ```typescript
-audioContext.createScriptProcessor(
-  4096,
-  1,
-  1
-)
+audioContext.createScriptProcessor(4096, 1, 1);
 ```
 
 Here:
@@ -229,13 +225,13 @@ Here:
 When the browser provides the next audio block, it invokes:
 
 ```typescript
-onaudioprocess
+onaudioprocess;
 ```
 
 The data is read from:
 
 ```typescript
-event.inputBuffer.getChannelData(0)
+event.inputBuffer.getChannelData(0);
 ```
 
 The result is:
@@ -348,7 +344,7 @@ Int16Array
 Its underlying buffer is then sent:
 
 ```typescript
-pcmData.buffer
+pcmData.buffer;
 ```
 
 Therefore, Socket.IO carries binary PCM data rather than text.
@@ -378,7 +374,7 @@ The payload contains binary PCM data.
 The current `AudioSender` implementation sends:
 
 ```typescript
-socket.emit("audio-chunk", pcmData.buffer)
+socket.emit("audio-chunk", pcmData.buffer);
 ```
 
 This is an important architectural distinction:
@@ -434,12 +430,7 @@ const speaker = users.get(socket.id);
 It then calls:
 
 ```typescript
-speechService.addAudioChunk(
-  socket.id,
-  audioChunk,
-  speaker,
-  callback
-);
+speechService.addAudioChunk(socket.id, audioChunk, speaker, callback);
 ```
 
 `addAudioChunk()` performs several operations.
@@ -694,7 +685,7 @@ must exist and contain a non-empty string.
 The callback is then invoked:
 
 ```typescript
-callback(result)
+callback(result);
 ```
 
 This is where `SpeechService`'s responsibility ends.
@@ -999,7 +990,7 @@ translationService.translate({
   text,
   source,
   target,
-})
+});
 ```
 
 accepts:
@@ -1542,7 +1533,7 @@ The entire mechanism can now be represented by one diagram:
 
 # 40. Two Languages: Russian ↔ English
 
-Merriweather does not need an abstract system for dozens of languages.
+Roomixdoes not need an abstract system for dozens of languages.
 
 The target scenario is:
 
@@ -1924,7 +1915,7 @@ Socket.IO
 Browser
 ```
 
-Именно это является главным техническим ядром realtime translation в Merriweather.
+Именно это является главным техническим ядром realtime translation в Roomix.
 
 ---
 
@@ -1977,4 +1968,4 @@ Microphone
 → React
 ```
 
-then they genuinely understand how Merriweather's main real-time feature is implemented rather than merely knowing that “it has Whisper and translation.”
+then they genuinely understand how Roomix's main real-time feature is implemented rather than merely knowing that “it has Whisper and translation.”

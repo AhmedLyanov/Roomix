@@ -1,8 +1,8 @@
-# Merriweather — WebRTC and Video Communication
+# Roomix— WebRTC and Video Communication
 
 ## 1. Purpose
 
-Video communication is a core real-time feature of Merriweather. Users enter the same room, grant access to their camera and microphone, establish peer-to-peer connections, and receive each other's media streams.
+Video communication is a core real-time feature of Roomix. Users enter the same room, grant access to their camera and microphone, establish peer-to-peer connections, and receive each other's media streams.
 
 In this project, WebRTC is responsible for transferring audio and video between browsers. Socket.IO does **not** carry the actual video stream. It is used as a signaling channel through which participants exchange the data required to establish the WebRTC connection.
 
@@ -148,10 +148,10 @@ useRoomSession
 The room UI does not need to know the details of WebRTC negotiation. It receives higher-level data such as:
 
 ```ts
-stream
-remoteVideos
-participants
-disconnect
+stream;
+remoteVideos;
+participants;
+disconnect;
 ```
 
 This keeps low-level connection management inside the room-session layer.
@@ -169,7 +169,7 @@ A user enters:
 `useRoomSession` starts the media flow, and `useMedia` obtains a local:
 
 ```ts
-MediaStream
+MediaStream;
 ```
 
 That stream is passed into `usePeer`.
@@ -422,7 +422,7 @@ React state is used separately for values that the UI actually needs to react to
 The main function is conceptually:
 
 ```ts
-createPeer(socketId, initiator)
+createPeer(socketId, initiator);
 ```
 
 It first verifies that a local stream exists:
@@ -465,7 +465,7 @@ const peer = new Peer({
 The:
 
 ```ts
-initiator
+initiator;
 ```
 
 parameter determines which side starts the WebRTC negotiation.
@@ -479,7 +479,7 @@ existing-users
 it creates peers with:
 
 ```ts
-createPeer(socketId, true)
+createPeer(socketId, true);
 ```
 
 So the new participant acts as the initiator toward the existing participant.
@@ -493,7 +493,7 @@ user-connected
 it creates the peer with:
 
 ```ts
-createPeer(socketId, false)
+createPeer(socketId, false);
 ```
 
 The two sides therefore have an explicit role during negotiation rather than both independently starting the same negotiation flow.
@@ -505,7 +505,7 @@ The two sides therefore have an explicit role during negotiation rather than bot
 The local stream is passed into the peer:
 
 ```ts
-stream
+stream;
 ```
 
 This attaches the local audio/video tracks to the WebRTC connection.
@@ -690,7 +690,7 @@ That is handled through ICE.
 The project creates peers with:
 
 ```ts
-trickle: true
+trickle: true;
 ```
 
 This means ICE candidates can be emitted incrementally as they are discovered instead of waiting for all candidates to be gathered into one signaling payload.
@@ -752,7 +752,7 @@ iceServers: [
   {
     urls: "stun:stun.l.google.com:19302",
   },
-]
+];
 ```
 
 STUN helps the browser discover network information and identify a possible path to the other peer.
@@ -770,7 +770,7 @@ STUN configured
 TURN not shown
 ```
 
-and should not claim that Merriweather has TURN infrastructure when the source code does not demonstrate it.
+and should not claim that Roomixhas TURN infrastructure when the source code does not demonstrate it.
 
 ---
 
@@ -782,9 +782,7 @@ After the media connection is established:
 peer.on("stream", (remoteStream) => {
   remoteStreamsRef.current.set(socketId, remoteStream);
 
-  setRemoteVideos(
-    new Map(remoteStreamsRef.current)
-  );
+  setRemoteVideos(new Map(remoteStreamsRef.current));
 });
 ```
 
@@ -820,9 +818,7 @@ However, the UI must know when a stream appears or disappears.
 Therefore the code creates a new Map:
 
 ```ts
-setRemoteVideos(
-  new Map(remoteStreamsRef.current)
-);
+setRemoteVideos(new Map(remoteStreamsRef.current));
 ```
 
 React receives a new state object and renders the updated UI.
@@ -875,9 +871,7 @@ peersRef.current.delete(socketId);
 
 remoteStreamsRef.current.delete(socketId);
 
-setRemoteVideos(
-  new Map(remoteStreamsRef.current)
-);
+setRemoteVideos(new Map(remoteStreamsRef.current));
 ```
 
 Therefore the cleanup removes:
@@ -1197,7 +1191,7 @@ This is reasonable for small rooms but scales poorly for large conferences.
 
 A production system intended for large rooms would commonly use an SFU architecture.
 
-Merriweather does not use an SFU in the current implementation, so the correct description is a mesh-like peer-to-peer topology.
+Roomixdoes not use an SFU in the current implementation, so the correct description is a mesh-like peer-to-peer topology.
 
 ---
 
@@ -1298,25 +1292,25 @@ subtitle state
 For peers:
 
 ```ts
-destroyAllPeers()
+destroyAllPeers();
 ```
 
 For local media:
 
 ```ts
-stopStream()
+stopStream();
 ```
 
 For Socket.IO:
 
 ```ts
-disconnectSocket()
+disconnectSocket();
 ```
 
 For translation state:
 
 ```ts
-clearSubtitles()
+clearSubtitles();
 ```
 
 This matters especially in React development mode, where Strict Mode may cause:
@@ -1346,7 +1340,7 @@ mount
 and cleanup immediately executes:
 
 ```ts
-socket.disconnect()
+socket.disconnect();
 ```
 
 the backend can observe:
@@ -1423,17 +1417,17 @@ Media is handled by WebRTC.
 
 ## 34. Main Socket.IO events related to WebRTC
 
-| Event | Direction | Purpose |
-|---|---|---|
-| `join-room` | client → server | join a room |
-| `existing-users` | server → client | list participants already in the room |
-| `user-connected` | server → client | announce a new participant |
-| `offer` | client → server → client | route a WebRTC offer |
-| `answer` | client → server → client | route a WebRTC answer |
-| `ice-candidate` | client → server → client | route ICE signaling data |
-| `user-disconnected` | server → client | remove a participant |
-| `camera:update` | client → server → clients | synchronize camera state |
-| `mic:update` | client → server → clients | synchronize microphone state |
+| Event               | Direction                 | Purpose                               |
+| ------------------- | ------------------------- | ------------------------------------- |
+| `join-room`         | client → server           | join a room                           |
+| `existing-users`    | server → client           | list participants already in the room |
+| `user-connected`    | server → client           | announce a new participant            |
+| `offer`             | client → server → client  | route a WebRTC offer                  |
+| `answer`            | client → server → client  | route a WebRTC answer                 |
+| `ice-candidate`     | client → server → client  | route ICE signaling data              |
+| `user-disconnected` | server → client           | remove a participant                  |
+| `camera:update`     | client → server → clients | synchronize camera state              |
+| `mic:update`        | client → server → clients | synchronize microphone state          |
 
 ---
 
@@ -1601,7 +1595,7 @@ remoteVideos
 React UI
 ```
 
-This is the main video communication chain in Merriweather.
+This is the main video communication chain in Roomix.
 
 ---
 
@@ -1729,10 +1723,10 @@ This should therefore be considered a potential production-hardening area rather
 
 ## 43. Final architecture
 
-Merriweather separates realtime communication into several layers:
+Roomixseparates realtime communication into several layers:
 
 ```text
-                    Merriweather Room
+                    RoomixRoom
                            |
               +------------+------------+
               |                         |
@@ -1766,4 +1760,4 @@ Socket.IO tells peers how to connect.
 
 WebRTC carries the actual audio and video.
 
-Understanding this distinction is the key to understanding Merriweather's video communication implementation rather than merely knowing that the project uses `simple-peer`.
+Understanding this distinction is the key to understanding Roomix's video communication implementation rather than merely knowing that the project uses `simple-peer`.

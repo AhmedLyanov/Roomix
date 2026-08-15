@@ -1,8 +1,8 @@
-# Merriweather
+# Roomix
 
 ## Назначение
 
-Merriweather — full-stack веб-приложение для проведения онлайн-сессий с видеосвязью, realtime-событиями, обменом сообщениями и файлами, переводом речи в реальном времени и сохранением детальной истории сессий.
+Roomix— full-stack веб-приложение для проведения онлайн-сессий с видеосвязью, realtime-событиями, обменом сообщениями и файлами, переводом речи в реальном времени и сохранением детальной истории сессий.
 
 Главная инженерная ценность проекта состоит в объединении нескольких realtime-конвейеров:
 
@@ -15,7 +15,7 @@ Merriweather — full-stack веб-приложение для проведен�
 ## Архитектура
 
 ```text
-Merriweather
+Roomix
 ├── web/
 │   └── Next.js / React frontend
 ├── server/
@@ -124,11 +124,7 @@ Backend передаёт аудио в speech service. После распозн
 
 ```ts
 {
-  originalText,
-  translatedText,
-  speakerId,
-  sourceLanguage,
-  targetLanguage
+  (originalText, translatedText, speakerId, sourceLanguage, targetLanguage);
 }
 ```
 

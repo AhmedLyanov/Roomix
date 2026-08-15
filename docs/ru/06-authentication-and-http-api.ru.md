@@ -1,8 +1,8 @@
-# Merriweather — Authentication and HTTP API
+# Roomix— Authentication and HTTP API
 
 ## 1. Назначение документа
 
-Этот документ описывает HTTP-часть Merriweather и механизм аутентификации между frontend и backend.
+Этот документ описывает HTTP-часть Roomixи механизм аутентификации между frontend и backend.
 
 В проекте используются два основных способа взаимодействия:
 
@@ -343,10 +343,10 @@ Service выполняет:
 
 ```js
 Session.find({
-  ownerId: userId
+  ownerId: userId,
 }).sort({
-  startedAt: -1
-})
+  startedAt: -1,
+});
 ```
 
 Поэтому список возвращается от новых сессий к старым.
@@ -1100,16 +1100,16 @@ MongoDB не должна быть доступна непосредственн
 
 ## 27. Основные HTTP endpoints
 
-| Method | Endpoint | Назначение |
-|---|---|---|
-| `GET` | `/sessions/:userId` | список сессий пользователя |
-| `GET` | `/sessions/details/:id` | детали сессии |
-| `GET` | `/sessions/:sessionId/actions` | история SessionAction |
-| `DELETE` | `/sessions/:id` | удаление сессии |
-| `POST` | `/chat/:roomId/files` | загрузка файла |
-| `GET` | `/chat/:roomId/files` | список файлов комнаты |
-| `GET` | `/chat/:roomId/messages` | сообщения комнаты |
-| translation route | translation endpoint | HTTP proxy для перевода |
+| Method            | Endpoint                       | Назначение                 |
+| ----------------- | ------------------------------ | -------------------------- |
+| `GET`             | `/sessions/:userId`            | список сессий пользователя |
+| `GET`             | `/sessions/details/:id`        | детали сессии              |
+| `GET`             | `/sessions/:sessionId/actions` | история SessionAction      |
+| `DELETE`          | `/sessions/:id`                | удаление сессии            |
+| `POST`            | `/chat/:roomId/files`          | загрузка файла             |
+| `GET`             | `/chat/:roomId/files`          | список файлов комнаты      |
+| `GET`             | `/chat/:roomId/messages`       | сообщения комнаты          |
+| translation route | translation endpoint           | HTTP proxy для перевода    |
 
 Конкретная авторизация применяется на защищённых routes через:
 
@@ -1242,7 +1242,7 @@ WebSocket Server
 
 ## 31. Итог
 
-HTTP API в Merriweather выполняет роль контролируемого request/response слоя между браузером и backend.
+HTTP API в Roomixвыполняет роль контролируемого request/response слоя между браузером и backend.
 
 Основной путь:
 
@@ -1306,4 +1306,4 @@ React Query
 frontend server-state management
 ```
 
-Именно такое разделение позволяет Merriweather одновременно поддерживать обычные CRUD/API-операции, историю сессий, загрузку файлов и realtime-функции видеокомнаты.
+Именно такое разделение позволяет Roomixодновременно поддерживать обычные CRUD/API-операции, историю сессий, загрузку файлов и realtime-функции видеокомнаты.

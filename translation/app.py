@@ -18,7 +18,7 @@ NO_SPEECH_THRESHOLD = 0.5
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="Merryweather Speech & Translation Service")
+app = FastAPI(title="Roomix Speech & Translation Service")
 
 app.add_middleware(
     CORSMiddleware,

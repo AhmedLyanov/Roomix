@@ -1,8 +1,8 @@
-# Merriweather — Realtime Communication Internals
+# Roomix— Realtime Communication Internals
 
 ## 1. Purpose
 
-This document is a deeper engineering-level explanation of the realtime communication subsystem in Merriweather.
+This document is a deeper engineering-level explanation of the realtime communication subsystem in Roomix.
 
 The previous WebRTC documentation explains the architecture and the main implementation points. This document focuses on the internal execution model:
 
@@ -196,7 +196,7 @@ Most importantly, the audio track is also consumed by the realtime translation b
 
 ## 6. One MediaStream, Two Pipelines
 
-This is one of the most important architectural details in Merriweather.
+This is one of the most important architectural details in Roomix.
 
 The same local `MediaStream` feeds two independent paths:
 
@@ -484,7 +484,7 @@ The distinction prevents both sides from independently behaving as initiators fo
 
 A peer connection needs one side to begin the offer/answer negotiation.
 
-In Merriweather:
+In Roomix:
 
 ```text
 new participant
@@ -519,7 +519,7 @@ This is an application-level convention used to keep negotiation deterministic.
 The frontend stores active WebRTC peers in:
 
 ```ts
-useRef<Map<string, Peer.Instance>>(new Map())
+useRef<Map<string, Peer.Instance>>(new Map());
 ```
 
 The mapping is:
@@ -548,7 +548,7 @@ Changing the peer itself should not require React to rerender the entire UI.
 The central operation is:
 
 ```ts
-createPeer(socketId, initiator)
+createPeer(socketId, initiator);
 ```
 
 A peer is created conceptually as:
@@ -634,7 +634,7 @@ ontrack
 addTrack
 ```
 
-Merriweather uses:
+Roomixuses:
 
 ```text
 simple-peer
@@ -658,7 +658,7 @@ The project therefore delegates much of the low-level WebRTC negotiation machine
 
 WebRTC itself does not provide the application-level signaling server used to introduce two browsers to one another.
 
-Merriweather uses Socket.IO for this purpose.
+Roomixuses Socket.IO for this purpose.
 
 The main signaling messages are:
 
@@ -739,7 +739,7 @@ peersRef.get(from)
 and passes the offer into:
 
 ```ts
-peer.signal(offer)
+peer.signal(offer);
 ```
 
 `simple-peer` then generates the answer.
@@ -759,7 +759,7 @@ Peer A
 Peer A then processes:
 
 ```ts
-peer.signal(answer)
+peer.signal(answer);
 ```
 
 ---
@@ -1021,9 +1021,7 @@ This allows the UI to show status independently of the underlying WebRTC objects
 When the local user toggles the camera, the frontend changes the video track:
 
 ```ts
-stream.getVideoTracks().forEach(
-  (track) => (track.enabled = !track.enabled)
-);
+stream.getVideoTracks().forEach((track) => (track.enabled = !track.enabled));
 ```
 
 It also updates local React state.

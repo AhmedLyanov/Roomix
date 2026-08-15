@@ -1,4 +1,4 @@
-# Merriweather — Session History / Action History
+# Roomix— Session History / Action History
 
 ## 1. Назначение
 
@@ -253,8 +253,8 @@ Session
 
 ```js
 SessionAction.find({
-  sessionId
-})
+  sessionId,
+});
 ```
 
 и позволяет отдельно получать timeline.
@@ -339,7 +339,7 @@ Metadata:
 
 ```js
 {
-  ownerName
+  ownerName;
 }
 ```
 
@@ -414,7 +414,7 @@ Metadata:
 
 ```js
 {
-  userName
+  userName;
 }
 ```
 
@@ -561,15 +561,15 @@ SCREEN_SHARED
 
 # 13. Таблица реальных actions
 
-| Action | Есть в enum | Реально создаётся | Где создаётся | Metadata |
-|---|---:|---:|---|---|
-| `SESSION_STARTED` | Да | Да | `session.service.js → createSession()` | `{ ownerName }` |
-| `SESSION_ENDED` | Да | Нет | Нет | Нет фактической записи |
-| `PARTICIPANT_JOINED` | Да | Да | `session.service.js → joinParticipant()` | `{ userName }` |
-| `PARTICIPANT_LEFT` | Да | Нет | Нет | Нет фактической записи |
-| `FILE_UPLOADED` | Да | Да | `RoomMessage.route.js` | `fileName`, `fileSize`, `mimeType`, `messageId` |
-| `MESSAGE_SENT` | Да | Нет | Нет | Сообщение хранится в `RoomMessage` |
-| `SCREEN_SHARED` | Да | Нет | Нет | Нет фактической записи |
+| Action               | Есть в enum | Реально создаётся | Где создаётся                            | Metadata                                        |
+| -------------------- | ----------: | ----------------: | ---------------------------------------- | ----------------------------------------------- |
+| `SESSION_STARTED`    |          Да |                Да | `session.service.js → createSession()`   | `{ ownerName }`                                 |
+| `SESSION_ENDED`      |          Да |               Нет | Нет                                      | Нет фактической записи                          |
+| `PARTICIPANT_JOINED` |          Да |                Да | `session.service.js → joinParticipant()` | `{ userName }`                                  |
+| `PARTICIPANT_LEFT`   |          Да |               Нет | Нет                                      | Нет фактической записи                          |
+| `FILE_UPLOADED`      |          Да |                Да | `RoomMessage.route.js`                   | `fileName`, `fileSize`, `mimeType`, `messageId` |
+| `MESSAGE_SENT`       |          Да |               Нет | Нет                                      | Сообщение хранится в `RoomMessage`              |
+| `SCREEN_SHARED`      |          Да |               Нет | Нет                                      | Нет фактической записи                          |
 
 Это один из важных моментов для защиты проекта: schema и runtime behavior здесь не полностью совпадают.
 
@@ -609,10 +609,10 @@ Service выполняет запрос:
 
 ```js
 SessionAction.find({
-  sessionId
+  sessionId,
 }).sort({
-  createdAt: 1
-})
+  createdAt: 1,
+});
 ```
 
 Ключевой момент:
@@ -681,8 +681,8 @@ web/src/shared/api/client.ts
 
 ```ts
 axios.create({
-  baseURL: "http://localhost:5000"
-})
+  baseURL: "http://localhost:5000",
+});
 ```
 
 Также request interceptor получает access token:
@@ -710,14 +710,14 @@ get-session-actions.ts
 Функция:
 
 ```ts
-getSessionActions(sessionId)
+getSessionActions(sessionId);
 ```
 
 делает:
 
 ```ts
 const { data } = await api.get<SessionAction[]>(
-  `/sessions/${sessionId}/actions`
+  `/sessions/${sessionId}/actions`,
 );
 ```
 
@@ -812,7 +812,7 @@ return useQuery({
 Используется:
 
 ```ts
-["session-actions", sessionId]
+["session-actions", sessionId];
 ```
 
 Например:
@@ -840,7 +840,7 @@ return useQuery({
 Используется:
 
 ```ts
-() => getSessionActions(sessionId)
+() => getSessionActions(sessionId);
 ```
 
 React Query вызывает API function.
@@ -870,7 +870,7 @@ GET /sessions/:sessionId/actions
 Используется:
 
 ```ts
-enabled: Boolean(sessionId)
+enabled: Boolean(sessionId);
 ```
 
 Если:
@@ -1335,10 +1335,10 @@ MongoDB:
 
 ```js
 SessionAction.find({
-  sessionId: "abc"
+  sessionId: "abc",
 }).sort({
-  createdAt: 1
-})
+  createdAt: 1,
+});
 ```
 
 Получаем:
@@ -1756,7 +1756,7 @@ GET /sessions/:id/actions
 Читает actions из MongoDB:
 
 ```js
-SessionAction.find({ sessionId }).sort({ createdAt: 1 })
+SessionAction.find({ sessionId }).sort({ createdAt: 1 });
 ```
 
 ### `get-session-actions.ts`
@@ -1862,7 +1862,7 @@ createdAt ascending
 
 # 47. Итог
 
-Session History в Merriweather построена вокруг простой модели:
+Session History в Roomixпостроена вокруг простой модели:
 
 ```text
 Session

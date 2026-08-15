@@ -1,8 +1,8 @@
-# Merriweather — Backend Architecture
+# Roomix— Backend Architecture
 
 ## 1. Document Purpose
 
-This document describes the Merriweather backend architecture: the Fastify application structure, separation into routes, services, models, and plugins, HTTP API and Socket.IO operation, MongoDB access, and backend interaction with the realtime translation and session systems.
+This document describes the Roomixbackend architecture: the Fastify application structure, separation into routes, services, models, and plugins, HTTP API and Socket.IO operation, MongoDB access, and backend interaction with the realtime translation and session systems.
 
 The main goal of the backend is not to keep all logic inside route handlers, but to separate responsibilities between layers.
 
@@ -1256,7 +1256,7 @@ Room
 HTTP routes use:
 
 ```js
-preHandler: [fastify.authenticate]
+preHandler: [fastify.authenticate];
 ```
 
 For example:
@@ -1317,7 +1317,7 @@ A more accurate statement is:
 
 ## 36. HTTP and Realtime Are Parallel Channels
 
-Merriweather uses two primary communication channels.
+Roomixuses two primary communication channels.
 
 ### HTTP
 
@@ -1452,21 +1452,21 @@ Errors from the external translation service additionally fall back to the origi
 
 ## 39. Backend Responsibilities by Component
 
-| Component | Responsibility |
-|---|---|
-| `index.js` | application composition/startup |
-| `auth.js` | HTTP authentication integration |
-| `websocket.js` | Socket.IO + realtime orchestration |
-| session routes | HTTP session API |
-| chat routes | messages and file upload |
-| `session.service.js` | session lifecycle |
-| `session-action.service.js` | session event persistence |
-| `speech.service.js` | audio buffering + STT bridge |
-| `translation.service.js` | translation bridge |
-| `Session.model.js` | session persistence model |
-| `SessionAction.model.js` | action persistence model |
-| `RoomMessage.model.js` | chat/file persistence model |
-| `User.js` | user persistence model |
+| Component                   | Responsibility                     |
+| --------------------------- | ---------------------------------- |
+| `index.js`                  | application composition/startup    |
+| `auth.js`                   | HTTP authentication integration    |
+| `websocket.js`              | Socket.IO + realtime orchestration |
+| session routes              | HTTP session API                   |
+| chat routes                 | messages and file upload           |
+| `session.service.js`        | session lifecycle                  |
+| `session-action.service.js` | session event persistence          |
+| `speech.service.js`         | audio buffering + STT bridge       |
+| `translation.service.js`    | translation bridge                 |
+| `Session.model.js`          | session persistence model          |
+| `SessionAction.model.js`    | action persistence model           |
+| `RoomMessage.model.js`      | chat/file persistence model        |
+| `User.js`                   | user persistence model             |
 
 ---
 
@@ -1826,4 +1826,4 @@ MongoDB
     → persist application state
 ```
 
-This separation is what allows Merriweather to combine ordinary API operations with WebRTC, realtime translation, session history, chat, and file sharing without putting the entire application into one giant server module.
+This separation is what allows Roomixto combine ordinary API operations with WebRTC, realtime translation, session history, chat, and file sharing without putting the entire application into one giant server module.

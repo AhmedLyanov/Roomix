@@ -1,8 +1,8 @@
-# Merriweather — Development and Deployment
+# Roomix— Development and Deployment
 
 ## 1. Назначение документа
 
-Этот документ описывает практическую сторону разработки Merriweather: как запускаются отдельные части проекта, какие инструменты используются, как устроено окружение, какие конфигурационные границы существуют между frontend, backend, MongoDB и Python speech/translation service, а также какие проблемы возникали во время разработки.
+Этот документ описывает практическую сторону разработки Roomix: как запускаются отдельные части проекта, какие инструменты используются, как устроено окружение, какие конфигурационные границы существуют между frontend, backend, MongoDB и Python speech/translation service, а также какие проблемы возникали во время разработки.
 
 Важно: этот документ описывает фактически подтверждённый development workflow проекта. Полноценный production deployment pipeline в исходных материалах не представлен как законченная инфраструктура, поэтому здесь не придумывается несуществующий Docker/Kubernetes/CI/CD слой.
 
@@ -13,7 +13,7 @@
 Проект разделён на несколько самостоятельных частей:
 
 ```text
-Merriweather/
+Roomix/
 │
 ├── web/
 │   └── Next.js / React frontend
@@ -379,7 +379,7 @@ Backend использует:
 HTTP route защищается:
 
 ```js
-preHandler: [fastify.authenticate]
+preHandler: [fastify.authenticate];
 ```
 
 Таким образом development environment должен содержать корректно согласованные Clerk keys.
@@ -510,7 +510,7 @@ websocket error
 Во время development Next.js обнаруживал несколько lockfiles:
 
 ```text
-Merriweather/package-lock.json
+Roomix/package-lock.json
 web/bun.lock
 ```
 
@@ -986,7 +986,7 @@ Frontend должен обновить subtitle state.
 
 ## 27. Git workflow
 
-Разработка Merriweather велась через Git.
+Разработка Roomixвелась через Git.
 
 В истории проекта присутствуют feature/fix commits, например:
 
@@ -1379,18 +1379,18 @@ rendering
 
 ## 40. Development vs production
 
-| Area | Development | Production goal |
-|---|---|---|
-| Frontend | Next.js dev server | Next.js production build/runtime |
-| Backend | Fastify watch mode | Fastify without watch |
-| MongoDB | remote/dev database | secured production database |
-| Clerk | development instance | production instance |
-| Socket.IO | one process | scalable realtime infrastructure |
-| WebRTC | STUN testing | STUN + reliable TURN |
-| Translation | local Python service | dedicated reliable ML runtime |
-| Logging | verbose debugging | structured operational logging |
-| Secrets | `.env.local` / environment | managed secrets |
-| Build | local | reproducible CI/CD build |
+| Area        | Development                | Production goal                  |
+| ----------- | -------------------------- | -------------------------------- |
+| Frontend    | Next.js dev server         | Next.js production build/runtime |
+| Backend     | Fastify watch mode         | Fastify without watch            |
+| MongoDB     | remote/dev database        | secured production database      |
+| Clerk       | development instance       | production instance              |
+| Socket.IO   | one process                | scalable realtime infrastructure |
+| WebRTC      | STUN testing               | STUN + reliable TURN             |
+| Translation | local Python service       | dedicated reliable ML runtime    |
+| Logging     | verbose debugging          | structured operational logging   |
+| Secrets     | `.env.local` / environment | managed secrets                  |
+| Build       | local                      | reproducible CI/CD build         |
 
 ---
 
@@ -1725,7 +1725,7 @@ fully automated CI/CD
 
 ## 51. Development philosophy
 
-Merriweather полезно рассматривать не как набор отдельных features, а как систему asynchronous boundaries:
+Roomixполезно рассматривать не как набор отдельных features, а как систему asynchronous boundaries:
 
 ```text
 Browser
@@ -1836,7 +1836,7 @@ WebRTC
 
 ## 54. Final summary
 
-The development architecture of Merriweather is based on independent runtime components:
+The development architecture of Roomixis based on independent runtime components:
 
 ```text
 Next.js

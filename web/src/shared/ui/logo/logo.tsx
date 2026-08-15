@@ -6,7 +6,7 @@ export function Logo() {
     <div className="flex items-center gap-2.25">
       <LogoIcon />
       <Typography variant="body" className="text-(--color-logo)">
-        Merriweather
+        Roomix
       </Typography>
     </div>
   );

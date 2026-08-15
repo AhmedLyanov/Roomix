@@ -5,8 +5,8 @@ async function swagger(fastify) {
   await fastify.register(swaggerPlugin, {
     openapi: {
       info: {
-        title: "Merriweather API",
-        description: "Merriweather Backend API",
+        title: "RoomixAPI",
+        description: "RoomixBackend API",
         version: "1.0.0",
       },
     },

@@ -1,8 +1,8 @@
-# Merriweather — Project Overview
+# Roomix— Project Overview
 
-## 1. What is Merriweather?
+## 1. What is Roomix?
 
-Merriweather is a real-time communication platform built around live video sessions.
+Roomixis a real-time communication platform built around live video sessions.
 
 The project combines:
 
@@ -22,7 +22,7 @@ The main technical goal of the project is not simply to build a video call UI. I
 User
  │
  ▼
-Merriweather Room
+RoomixRoom
  │
  ├── WebRTC
  │    └── live audio/video
@@ -68,7 +68,7 @@ After negotiation, media is transported through WebRTC.
 
 ### 2.2 Real-time speech translation
 
-One of the main features of Merriweather is real-time speech translation between:
+One of the main features of Roomixis real-time speech translation between:
 
 ```text
 Russian ↔ English
@@ -178,7 +178,7 @@ File uploads additionally create a `FILE_UPLOADED` session action when an active
 
 ## 3. High-Level Architecture
 
-Merriweather is split into several major layers.
+Roomixis split into several major layers.
 
 ```text
                     Frontend
@@ -418,7 +418,7 @@ The current architecture is a mesh topology, meaning each participant maintains 
 
 ## 10. Translation Architecture
 
-The translation system is one of the most technically important parts of Merriweather.
+The translation system is one of the most technically important parts of Roomix.
 
 The system supports:
 
@@ -613,7 +613,7 @@ SessionAction
 
 ## 14. Why the Project Exists
 
-Merriweather is primarily a portfolio and engineering demonstration project.
+Roomixis primarily a portfolio and engineering demonstration project.
 
 Its purpose is to demonstrate the ability to design and implement a system involving:
 
@@ -680,7 +680,7 @@ The most important documents for understanding the project's engineering depth a
 04-session-system.md
 ```
 
-Together they explain the three core technical ideas behind Merriweather:
+Together they explain the three core technical ideas behind Roomix:
 
 ```text
 Real-time communication
@@ -694,7 +694,7 @@ Persistent session history
 
 ## 16. Short Technical Summary
 
-Merriweather is a Next.js + Fastify real-time communication platform using WebRTC for peer-to-peer media, Socket.IO for signaling and application-level realtime events, MongoDB for persistent data, and a speech/translation pipeline for Russian-English live subtitles.
+Roomixis a Next.js + Fastify real-time communication platform using WebRTC for peer-to-peer media, Socket.IO for signaling and application-level realtime events, MongoDB for persistent data, and a speech/translation pipeline for Russian-English live subtitles.
 
 The central architectural principle is separation of responsibilities:
 

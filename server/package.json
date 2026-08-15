@@ -1,7 +1,7 @@
 {
-  "name": "merriweather-server",
+  "name": "roomix-server",
   "version": "1.0.0",
-  "description": "Fastify backend for Merriweather",
+  "description": "Fastify backend for Roomix",
   "type": "module",
   "main": "index.js",
   "directories": {

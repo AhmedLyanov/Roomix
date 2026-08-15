@@ -2,7 +2,7 @@
 
 ## 1. Цель документа
 
-Этот документ описывает фактическую реализацию realtime-комнаты Merriweather и установление видеосвязи между участниками.
+Этот документ описывает фактическую реализацию realtime-комнаты Roomixи установление видеосвязи между участниками.
 
 Здесь важно разделять две задачи:
 
@@ -16,7 +16,7 @@ Socket.IO не является транспортом для самого ви�
 ## 2. Общая схема
 
 ```text
-                    Merriweather Room
+                    RoomixRoom
 
  Browser A                                  Browser B
     │                                           │
@@ -194,11 +194,7 @@ Backend поднимает Socket.IO с тем же path:
 
 ```ts
 {
-  roomId,
-  userId,
-  userName,
-  nativeLanguage,
-  userAvatar
+  (roomId, userId, userName, nativeLanguage, userAvatar);
 }
 ```
 
@@ -283,8 +279,9 @@ rooms.get(roomId).set(socket.id, participant)
 После добавления нового участника backend получает существующих пользователей:
 
 ```js
-const existingUsers = Array.from(room.values())
-  .filter((user) => user.socketId !== socket.id)
+const existingUsers = Array.from(room.values()).filter(
+  (user) => user.socketId !== socket.id,
+);
 ```
 
 Новый клиент получает:
@@ -470,21 +467,19 @@ initiator = false
 `usePeer()` хранит:
 
 ```ts
-peersRef:
-  Map<string, Peer.Instance>
+peersRef: Map<string, Peer.Instance>;
 ```
 
 и:
 
 ```ts
-remoteStreamsRef:
-  Map<string, MediaStream>
+remoteStreamsRef: Map<string, MediaStream>;
 ```
 
 Когда вызывается:
 
 ```ts
-createPeer(socketId, initiator)
+createPeer(socketId, initiator);
 ```
 
 проверяются две вещи.
@@ -517,10 +512,10 @@ new Peer({
   config: {
     iceServers: [
       {
-        urls: "stun:stun.l.google.com:19302"
-      }
-    ]
-  }
+        urls: "stun:stun.l.google.com:19302",
+      },
+    ],
+  },
 });
 ```
 
@@ -651,7 +646,7 @@ Backend не обрабатывает содержимое offer.
 ```js
 io.to(to).emit("offer", {
   offer,
-  from: socket.id
+  from: socket.id,
 });
 ```
 
@@ -768,7 +763,7 @@ Peer B
 ```js
 io.to(to).emit("ice-candidate", {
   candidate,
-  from: socket.id
+  from: socket.id,
 });
 ```
 
@@ -797,7 +792,7 @@ WebRTC peer connection начинает передавать media.
 В `simple-peer` stream передаётся при создании:
 
 ```ts
-stream
+stream;
 ```
 
 После получения remote stream срабатывает:
@@ -829,7 +824,7 @@ remoteVideos
 Используется:
 
 ```ts
-Map<string, MediaStream>
+Map<string, MediaStream>;
 ```
 
 где:
@@ -913,11 +908,9 @@ socketId
 Когда пользователь выключает камеру:
 
 ```ts
-stream.getVideoTracks().forEach(
-  (track) => {
-    track.enabled = enabled;
-  }
-);
+stream.getVideoTracks().forEach((track) => {
+  track.enabled = enabled;
+});
 ```
 
 Это меняет локальный video track.
@@ -965,11 +958,9 @@ camera:update
 Frontend:
 
 ```ts
-stream.getAudioTracks().forEach(
-  (track) => {
-    track.enabled = enabled;
-  }
-);
+stream.getAudioTracks().forEach((track) => {
+  track.enabled = enabled;
+});
 ```
 
 Дополнительно:
@@ -1579,4 +1570,4 @@ participant state ≠ MediaStream
 runtime room state ≠ persistent session history
 ```
 
-Именно эти пять различий объясняют большую часть архитектуры Merriweather.
+Именно эти пять различий объясняют большую часть архитектуры Roomix.
