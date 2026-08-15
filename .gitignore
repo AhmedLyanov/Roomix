@@ -6,6 +6,6 @@ bun.lock
 package-lock.json
 
 translation/models/
-models/
+
 *.bin
 *.safetensors

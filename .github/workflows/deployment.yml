@@ -1,0 +1,167 @@
+name: Deploy Web
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        working-directory: web
+        run: npm install
+
+      - name: Build Next.js
+        working-directory: web
+        env:
+          # Clerk
+          NEXT_PUBLIC_CLERK_SIGN_IN_URL: ${{ secrets.NEXT_PUBLIC_CLERK_SIGN_IN_URL }}
+          NEXT_PUBLIC_CLERK_SIGN_UP_URL: ${{ secrets.NEXT_PUBLIC_CLERK_SIGN_UP_URL }}
+          NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL: ${{ secrets.NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL }}
+          NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL: ${{ secrets.NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL }}
+
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+
+          # Backend
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+
+          # WebRTC / Socket.IO
+          NEXT_PUBLIC_SIGNALING_URL: ${{ secrets.NEXT_PUBLIC_SIGNALING_URL }}
+
+        run: npm run build
+
+      - name: Prepare standalone
+        working-directory: web
+        shell: bash
+        run: |
+          echo "=== Standalone structure ==="
+
+          find .next/standalone \
+            -maxdepth 4 \
+            -type f \
+            | sort \
+            | head -200
+
+          echo "=== Searching for server.js ==="
+
+          SERVER_PATH=$(find .next/standalone \
+            -type f \
+            -name "server.js" \
+            ! -path "*/node_modules/*" \
+            | head -n 1)
+
+          if [ -z "$SERVER_PATH" ]; then
+            echo "ERROR: server.js was not found in .next/standalone"
+            exit 1
+          fi
+
+          echo "Found server.js:"
+          echo "$SERVER_PATH"
+
+          STANDALONE_DIR=$(dirname "$SERVER_PATH")
+
+          echo "Standalone directory:"
+          echo "$STANDALONE_DIR"
+
+          echo "=== Preparing public ==="
+
+          if [ -d "public" ]; then
+            cp -r public "$STANDALONE_DIR/public"
+          fi
+
+          echo "=== Preparing .next/static ==="
+
+          mkdir -p "$STANDALONE_DIR/.next"
+
+          cp -r .next/static "$STANDALONE_DIR/.next/static"
+
+          echo "=== Final standalone structure ==="
+
+          find "$STANDALONE_DIR" \
+            -maxdepth 4 \
+            -type f \
+            | sort \
+            | head -300
+
+          echo "=== Done ==="
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/roomix_deploy
+
+          chmod 600 ~/.ssh/roomix_deploy
+
+          ssh-keyscan -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Deploy to VPS
+        run: |
+          SERVER_PATH=$(find web/.next/standalone \
+            -type f \
+            -name "server.js" \
+            ! -path "*/node_modules/*" \
+            | head -n 1)
+
+          if [ -z "$SERVER_PATH" ]; then
+            echo "ERROR: server.js not found"
+            exit 1
+          fi
+
+          STANDALONE_DIR=$(dirname "$SERVER_PATH")
+
+          echo "Deploying:"
+          echo "$STANDALONE_DIR"
+
+          ssh -i ~/.ssh/roomix_deploy \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
+            "mkdir -p /var/www/roomix-web"
+
+          rsync -az --delete \
+            --exclude='.env.production' \
+            -e "ssh -i ~/.ssh/roomix_deploy" \
+            "$STANDALONE_DIR/" \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/var/www/roomix-web/
+
+          echo "=== VPS files ==="
+
+          ssh -i ~/.ssh/roomix_deploy \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
+            "find /var/www/roomix-web -maxdepth 4 -type f | sort | head -300"
+
+      - name: Restart application
+        run: |
+          ssh -i ~/.ssh/roomix_deploy \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
+            "cd /var/www/roomix-web && \
+            pm2 delete roomix-web || true && \
+            pm2 start server.js \
+              --name roomix-web \
+              --cwd /var/www/roomix-web && \
+            pm2 save"
+
+      - name: Verify application
+        run: |
+          ssh -i ~/.ssh/roomix_deploy \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
+            "cd /var/www/roomix-web && \
+             pm2 status && \
+             echo '--- SERVER ---' && \
+             test -f server.js && \
+             echo 'server.js exists' && \
+             echo '--- ENV ---' && \
+             test -f .env.production && \
+             echo '.env.production exists' && \
+             echo '--- APP ---' && \
+             curl -I http://127.0.0.1:3000"
