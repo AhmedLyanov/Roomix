@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Skeleton } from "antd";
-
+import { FileNotFoundIcon } from "@/src/shared/icons/24";
 import { Typography } from "@/src/shared";
 import {
   FileItem,
@@ -85,7 +85,10 @@ export default function SessionFiles({ roomId }: Props) {
             ))}
           </div>
         ) : files.length === 0 ? (
-          <Typography className="text-(--color-gray)">No files</Typography>
+          <div className="flex flex-col items-center justify-center gap-3">
+            <FileNotFoundIcon />
+            <Typography className="text-(--color-gray)">No files</Typography>
+          </div>
         ) : (
           <div className="flex flex-col gap-2">
             {files.map((file) => (

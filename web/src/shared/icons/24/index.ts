@@ -44,6 +44,7 @@ export { default as DownloadIcon } from "./DownloadIcon.svg";
 export { default as PdfIcon } from "./PdfIcon.svg";
 export { default as WordIcon } from "./WordIcon.svg";
 export { default as ExcelIcon } from "./ExcelIcon.svg";
+export { default as FileNotFoundIcon } from "./FileNotFoundIcon.svg";
 // export {default as ImageIcon} from "./ImageIcon.svg";
 // export {default as VideoIcon} from "./VideoIcon.svg";
 export { default as FileIcon } from "./FileIcon.svg";
