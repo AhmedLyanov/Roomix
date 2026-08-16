@@ -156,12 +156,11 @@ jobs:
           ssh -i ~/.ssh/roomix_deploy \
             ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
             "cd /var/www/roomix-web && \
+             echo '=== PM2 ===' && \
              pm2 status && \
-             echo '--- SERVER ---' && \
+             echo '=== SERVER ===' && \
              test -f server.js && \
              echo 'server.js exists' && \
-             echo '--- ENV ---' && \
-             test -f .env.production && \
-             echo '.env.production exists' && \
-             echo '--- APP ---' && \
-             curl -I http://127.0.0.1:3000"
+             echo '=== APP ===' && \
+             curl -f -I http://127.0.0.1:3000 && \
+             echo '=== DEPLOY SUCCESS ==='"
