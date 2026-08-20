@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
+
 import { io, Socket } from "socket.io-client";
 import Peer from "simple-peer";
 
@@ -19,6 +20,7 @@ import type {
   SignalData,
   MicrophoneUpdatePayload,
 } from "../model/types";
+
 import { RoomMessage } from "../model/use-room-session";
 
 interface UseSocketProps {
@@ -28,10 +30,15 @@ interface UseSocketProps {
   userAvatar: string | undefined;
   nativeLanguage: string;
   stream: MediaStream | null;
+
   peersRef: React.MutableRefObject<Map<string, Peer.Instance>>;
+
   createPeer: (socketId: string, initiator: boolean) => Peer.Instance | null;
+
   removePeer: (socketId: string) => void;
+
   setSubtitle: (data: SubtitlePayload) => void;
+
   setMessage: (message: RoomMessage) => void;
 }
 
@@ -51,67 +58,81 @@ export function useSocket({
   const socketRef = useRef<Socket | null>(null);
   const audioSenderRef = useRef<AudioSender | null>(null);
 
-  /**
-   * Prevents the socket from being recreated because of
-   * React StrictMode / development remounts.
-   */
-  const initializedRef = useRef(false);
-
-  /**
-   * Stores the latest stream without making the socket
-   * effect depend on stream.
-   */
   const streamRef = useRef<MediaStream | null>(stream);
 
-  /**
-   * Delayed disconnect allows React StrictMode to perform
-   * its development remount without actually destroying
-   * the session.
-   */
-  const disconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   const [socketId, setSocketId] = useState("");
+
   const [participants, setParticipants] = useState<Map<string, Participant>>(
     new Map(),
   );
 
+  /*
+   * Всегда держим актуальный stream.
+   */
   useEffect(() => {
     streamRef.current = stream;
-
-    if (audioSenderRef.current && stream) {
-      audioSenderRef.current.stop();
-      audioSenderRef.current = null;
-
-      const socket = socketRef.current;
-
-      if (socket) {
-        audioSenderRef.current = new AudioSender(socket);
-        audioSenderRef.current.start(stream);
-        audioSenderRef.current.setTranslationEnabled(false);
-      }
-    }
   }, [stream]);
 
+  /*
+   * Если stream появился уже после подключения socket,
+   * запускаем AudioSender.
+   */
+  useEffect(() => {
+    const socket = socketRef.current;
+
+    if (!socket || !socket.connected || !stream) {
+      return;
+    }
+
+    if (audioSenderRef.current) {
+      audioSenderRef.current.stop();
+      audioSenderRef.current = null;
+    }
+
+    audioSenderRef.current = new AudioSender(socket);
+
+    audioSenderRef.current.start(stream);
+    audioSenderRef.current.setTranslationEnabled(false);
+
+    return () => {
+      audioSenderRef.current?.stop();
+      audioSenderRef.current = null;
+    };
+  }, [stream]);
+
+  /*
+   * WebRTC signal -> Socket.IO
+   */
   const handleSignal = useCallback((signal: SignalData) => {
-    if (!socketRef.current) return;
+    const socket = socketRef.current;
+
+    if (!socket) {
+      console.warn("[Socket] Signal ignored: socket is null");
+      return;
+    }
+
+    if (!socket.connected) {
+      console.warn("[Socket] Signal ignored: socket is disconnected");
+      return;
+    }
 
     switch (signal.type) {
       case "offer":
-        socketRef.current.emit("offer", {
+        socket.emit("offer", {
           offer: signal.data,
           to: signal.to,
         });
         break;
 
       case "answer":
-        socketRef.current.emit("answer", {
+        socket.emit("answer", {
           answer: signal.data,
           to: signal.to,
         });
         break;
 
       case "ice-candidate":
-        socketRef.current.emit("ice-candidate", {
+        socket.emit("ice-candidate", {
           candidate: signal.data,
           to: signal.to,
         });
@@ -119,17 +140,35 @@ export function useSocket({
     }
   }, []);
 
+  /*
+   * Chat
+   */
   const sendMessage = useCallback(
     (text: string) => {
-      if (!socketRef.current) return;
-      if (!text.trim()) return;
+      const socket = socketRef.current;
 
-      socketRef.current.emit("chat:send", {
+      if (!socket) {
+        console.warn("[Socket] Cannot send message: socket is null");
+        return;
+      }
+
+      if (!socket.connected) {
+        console.warn("[Socket] Cannot send message: socket disconnected");
+        return;
+      }
+
+      const value = text.trim();
+
+      if (!value) {
+        return;
+      }
+
+      socket.emit("chat:send", {
         roomId,
         senderId: userId,
         senderName: userName,
         senderAvatar: userAvatar,
-        text: text.trim(),
+        text: value,
       });
     },
     [roomId, userId, userName, userAvatar],
@@ -168,26 +207,23 @@ export function useSocket({
     [roomId, userId],
   );
 
+  /*
+   * SOCKET CONNECTION
+   */
   useEffect(() => {
-    if (!userId || !userName) return;
-
-    /**
-     * If React remounts the component immediately,
-     * cancel the pending disconnect instead of creating
-     * another socket/session.
-     */
-    if (disconnectTimerRef.current) {
-      clearTimeout(disconnectTimerRef.current);
-      disconnectTimerRef.current = null;
-    }
-
-    if (initializedRef.current) {
+    if (!userId || !userName) {
       return;
     }
 
-    initializedRef.current = true;
+    const signalingUrl = process.env.NEXT_PUBLIC_SIGNALING_URL;
 
-    const socket = io(process.env.NEXT_PUBLIC_SIGNALING_URL!, {
+    if (!signalingUrl) {
+      console.error("[Socket] NEXT_PUBLIC_SIGNALING_URL is not defined");
+
+      return;
+    }
+
+    const socket = io(signalingUrl, {
       path: "/ws",
       transports: ["websocket"],
       forceNew: true,
@@ -195,8 +231,11 @@ export function useSocket({
 
     socketRef.current = socket;
 
-    socket.on("connect", () => {
-      setSocketId(socket.id!);
+    /*
+     * CONNECT
+     */
+    const handleConnect = () => {
+      setSocketId(socket.id ?? "");
 
       const currentStream = streamRef.current;
 
@@ -204,11 +243,10 @@ export function useSocket({
         audioSenderRef.current = new AudioSender(socket);
 
         audioSenderRef.current.start(currentStream);
-
         audioSenderRef.current.setTranslationEnabled(false);
       }
 
-      const joinPayload: JoinRoomPayload = {
+      const payload: JoinRoomPayload = {
         roomId,
         userId,
         userName,
@@ -216,41 +254,69 @@ export function useSocket({
         userAvatar,
       };
 
-      socket.emit("join-room", joinPayload);
-    });
+      socket.emit("join-room", payload);
+    };
 
-    socket.on("connect_error", (err: Error) => {
-      console.error("[socket]", err.message);
-    });
+    /*
+     * DISCONNECT
+     */
+    const handleDisconnect = (reason: string) => {};
 
-    socket.on("subtitle", (data: SubtitlePayload) => {
-      setSubtitle(data);
-    });
+    /*
+     * ERROR
+     */
+    const handleConnectError = (error: Error) => {
+      console.error("[Socket] Connection error:", error);
+    };
 
-    socket.on("chat:new", (message: RoomMessage) => {
+    socket.on("connect", handleConnect);
+    socket.on("disconnect", handleDisconnect);
+    socket.on("connect_error", handleConnectError);
+
+    /*
+     * CHAT
+     */
+    const handleNewMessage = (message: RoomMessage) => {
       setMessage(message);
-    });
+    };
 
-    socket.on("existing-users", ({ users }: ExistingUsersPayload) => {
+    socket.on("chat:new", handleNewMessage);
+
+    /*
+     * SUBTITLES
+     */
+    const handleSubtitle = (data: SubtitlePayload) => {
+      setSubtitle(data);
+    };
+
+    socket.on("subtitle", handleSubtitle);
+
+    /*
+     * EXISTING USERS
+     *
+     * Этот клиент зашёл позже.
+     * Он должен создать initiator peer.
+     */
+    const handleExistingUsers = ({ users }: ExistingUsersPayload) => {
       users.forEach(
         ({
-          socketId,
-          userName,
-          userAvatar,
+          socketId: remoteSocketId,
+          userName: remoteUserName,
+          userAvatar: remoteUserAvatar,
           cameraEnabled,
           microphoneEnabled,
         }) => {
-          if (socketId === socket.id) {
+          if (remoteSocketId === socket.id) {
             return;
           }
 
           setParticipants((prev) => {
             const next = new Map(prev);
 
-            next.set(socketId, {
-              userId,
-              userName,
-              userAvatar,
+            next.set(remoteSocketId, {
+              userId: "",
+              userName: remoteUserName,
+              userAvatar: remoteUserAvatar,
               cameraEnabled,
               microphoneEnabled,
             });
@@ -258,154 +324,220 @@ export function useSocket({
             return next;
           });
 
-          createPeer(socketId, true);
+          createPeer(remoteSocketId, true);
         },
       );
-    });
+    };
 
-    socket.on(
-      "user-connected",
-      ({
-        socketId,
-        userName,
-        userAvatar,
-        cameraEnabled,
-        microphoneEnabled,
-      }: UserConnectedPayload) => {
-        if (socketId === socket.id) {
-          return;
-        }
+    socket.on("existing-users", handleExistingUsers);
 
-        setParticipants((prev) => {
-          const next = new Map(prev);
+    /*
+     * USER CONNECTED
+     *
+     * Этот клиент уже находился в комнате.
+     * Новый клиент подключился.
+     *
+     * Старый клиент создаёт non-initiator peer.
+     */
+    const handleUserConnected = ({
+      socketId: remoteSocketId,
+      userName: remoteUserName,
+      userAvatar: remoteUserAvatar,
+      cameraEnabled,
+      microphoneEnabled,
+    }: UserConnectedPayload) => {
+      if (remoteSocketId === socket.id) {
+        return;
+      }
 
-          next.set(socketId, {
-            userId,
-            userName,
-            userAvatar,
-            cameraEnabled,
-            microphoneEnabled,
-          });
-
-          return next;
-        });
-
-        createPeer(socketId, false);
-      },
-    );
-
-    socket.on("camera:update", ({ socketId, enabled }) => {
       setParticipants((prev) => {
         const next = new Map(prev);
 
-        const participant = next.get(socketId);
+        next.set(remoteSocketId, {
+          userId: "",
+          userName: remoteUserName,
+          userAvatar: remoteUserAvatar,
+          cameraEnabled,
+          microphoneEnabled,
+        });
+
+        return next;
+      });
+
+      createPeer(remoteSocketId, false);
+    };
+
+    socket.on("user-connected", handleUserConnected);
+
+    /*
+     * OFFER
+     */
+    const handleOffer = ({ offer, from }: OfferPayload) => {
+      let peer = peersRef.current.get(from);
+
+      if (!peer) {
+        peer = createPeer(from, false);
+      }
+
+      if (!peer) {
+        console.error("[Socket] Cannot create peer for offer:", from);
+
+        return;
+      }
+
+      peer.signal(offer);
+    };
+
+    socket.on("offer", handleOffer);
+
+    /*
+     * ANSWER
+     */
+    const handleAnswer = ({ answer, from }: AnswerPayload) => {
+      const peer = peersRef.current.get(from);
+
+      if (!peer) {
+        console.error("[Socket] Peer not found for answer:", from);
+
+        return;
+      }
+
+      peer.signal(answer);
+    };
+
+    socket.on("answer", handleAnswer);
+
+    /*
+     * ICE
+     */
+    const handleIceCandidate = ({ candidate, from }: IceCandidatePayload) => {
+      const peer = peersRef.current.get(from);
+
+      if (!peer) {
+        console.warn("[Socket] Peer not found for ICE:", from);
+
+        return;
+      }
+
+      peer.signal(candidate);
+    };
+
+    socket.on("ice-candidate", handleIceCandidate);
+
+    /*
+     * CAMERA
+     */
+    const handleCameraUpdate = ({
+      socketId: remoteSocketId,
+      enabled,
+    }: {
+      socketId: string;
+      enabled: boolean;
+    }) => {
+      setParticipants((prev) => {
+        const next = new Map(prev);
+
+        const participant = next.get(remoteSocketId);
 
         if (!participant) {
           return prev;
         }
 
-        next.set(socketId, {
+        next.set(remoteSocketId, {
           ...participant,
           cameraEnabled: enabled,
         });
 
         return next;
       });
-    });
+    };
 
-    socket.on(
-      "mic:update",
-      ({ socketId, enabled }: MicrophoneUpdatePayload) => {
-        setParticipants((prev) => {
-          const next = new Map(prev);
+    socket.on("camera:update", handleCameraUpdate);
 
-          const participant = next.get(socketId);
+    /*
+     * MICROPHONE
+     */
+    const handleMicUpdate = ({
+      socketId: remoteSocketId,
+      enabled,
+    }: MicrophoneUpdatePayload) => {
+      setParticipants((prev) => {
+        const next = new Map(prev);
 
-          if (!participant) {
-            return prev;
-          }
+        const participant = next.get(remoteSocketId);
 
-          next.set(socketId, {
-            ...participant,
-            microphoneEnabled: enabled,
-          });
-
-          return next;
-        });
-      },
-    );
-
-    socket.on("offer", ({ offer, from }: OfferPayload) => {
-      let peer = peersRef.current.get(from);
-
-      if (!peer) {
-        const createdPeer = createPeer(from, false);
-
-        if (!createdPeer) {
-          return;
+        if (!participant) {
+          return prev;
         }
 
-        peer = createdPeer;
-      }
+        next.set(remoteSocketId, {
+          ...participant,
+          microphoneEnabled: enabled,
+        });
 
-      peer.signal(offer);
-    });
+        return next;
+      });
+    };
 
-    socket.on("answer", ({ answer, from }: AnswerPayload) => {
-      peersRef.current.get(from)?.signal(answer);
-    });
+    socket.on("mic:update", handleMicUpdate);
 
-    socket.on("ice-candidate", ({ candidate, from }: IceCandidatePayload) => {
-      peersRef.current.get(from)?.signal(candidate);
-    });
-
-    socket.on("user-disconnected", ({ socketId }: UserDisconnectedPayload) => {
-      removePeer(socketId);
+    /*
+     * USER DISCONNECTED
+     */
+    const handleUserDisconnected = ({
+      socketId: remoteSocketId,
+    }: UserDisconnectedPayload) => {
+      removePeer(remoteSocketId);
 
       setParticipants((prev) => {
         const next = new Map(prev);
 
-        next.delete(socketId);
+        next.delete(remoteSocketId);
 
         return next;
       });
-    });
+    };
 
+    socket.on("user-disconnected", handleUserDisconnected);
+
+    /*
+     * CLEANUP
+     */
     return () => {
-      /**
-       * Don't immediately disconnect.
-       *
-       * React StrictMode does:
-       *
-       * mount
-       * cleanup
-       * mount
-       *
-       * in development.
-       *
-       * If we disconnect immediately, backend sees:
-       *
-       * disconnect -> finishSession()
-       * second mount -> createSession()
-       *
-       * which creates two sessions.
-       */
-      if (disconnectTimerRef.current) {
-        clearTimeout(disconnectTimerRef.current);
-      }
+      socket.off("connect", handleConnect);
 
-      disconnectTimerRef.current = setTimeout(() => {
-        audioSenderRef.current?.stop();
-        audioSenderRef.current = null;
+      socket.off("disconnect", handleDisconnect);
 
-        socket.disconnect();
+      socket.off("connect_error", handleConnectError);
 
+      socket.off("chat:new", handleNewMessage);
+
+      socket.off("subtitle", handleSubtitle);
+
+      socket.off("existing-users", handleExistingUsers);
+
+      socket.off("user-connected", handleUserConnected);
+
+      socket.off("offer", handleOffer);
+
+      socket.off("answer", handleAnswer);
+
+      socket.off("ice-candidate", handleIceCandidate);
+
+      socket.off("camera:update", handleCameraUpdate);
+
+      socket.off("mic:update", handleMicUpdate);
+
+      socket.off("user-disconnected", handleUserDisconnected);
+
+      audioSenderRef.current?.stop();
+      audioSenderRef.current = null;
+
+      socket.disconnect();
+
+      if (socketRef.current === socket) {
         socketRef.current = null;
-
-        initializedRef.current = false;
-
-        disconnectTimerRef.current = null;
-      }, 100);
+      }
     };
   }, [
     roomId,
@@ -421,19 +553,13 @@ export function useSocket({
   ]);
 
   const disconnectSocket = useCallback(() => {
-    if (disconnectTimerRef.current) {
-      clearTimeout(disconnectTimerRef.current);
-
-      disconnectTimerRef.current = null;
-    }
-
     audioSenderRef.current?.stop();
     audioSenderRef.current = null;
 
     socketRef.current?.disconnect();
     socketRef.current = null;
 
-    initializedRef.current = false;
+    setSocketId("");
   }, []);
 
   return {
@@ -441,9 +567,13 @@ export function useSocket({
     audioSenderRef,
     socketId,
     participants,
+
     handleSignal,
+
     disconnectSocket,
+
     sendMessage,
+
     updateCamera,
     updateMicrophone,
     updateLanguage,

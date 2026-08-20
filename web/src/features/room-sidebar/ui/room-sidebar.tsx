@@ -121,8 +121,8 @@ export const RoomSidebar = ({
 
       <RoomChat
         roomId={roomId}
-        roomSession={roomSession}
         isOpen={isChatOpen}
+        roomSession={roomSession}
         onClose={() => setIsChatOpen(false)}
       />
     </>

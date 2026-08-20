@@ -9,19 +9,7 @@ import { useMedia } from "../hooks/use-media";
 import { usePeer } from "../hooks/use-peer";
 import { useSocket } from "../hooks/use-socket";
 
-export interface RoomMessage {
-  _id: string;
-  roomId: string;
-  senderId: string;
-  senderName: string;
-  senderAvatar?: string;
-  text?: string;
-  type: "text" | "file";
-  fileUrl?: string;
-  fileName?: string;
-  fileSize?: number;
-  createdAt: string;
-}
+import type { RoomMessage } from "@/src/entities/message";
 
 export function useRoomSession({
   roomId,
@@ -46,7 +34,14 @@ export function useRoomSession({
   } = usePeer(stream);
 
   const handleChatMessage = useCallback((message: RoomMessage) => {
-    setMessages((prev) => [...prev, message]);
+    setMessages((prev) => {
+      // Защита от дублей.
+      if (prev.some((item) => item._id === message._id)) {
+        return prev;
+      }
+
+      return [...prev, message];
+    });
   }, []);
 
   const {
@@ -111,6 +106,7 @@ export function useRoomSession({
 
     socketId,
     socketRef,
+
     sendMessage,
     updateLanguage,
 
