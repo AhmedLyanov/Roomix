@@ -251,16 +251,6 @@ export default fp(async function (fastify) {
       },
     );
 
-    /**
-     * =========================
-     * File messages
-     * =========================
-     *
-     * Здесь предполагается, что upload endpoint
-     * сначала сохраняет файл и frontend получает
-     * fileUrl, после чего отправляет file-message.
-     */
-
     socket.on(
       "file-message",
       async (payload) => {

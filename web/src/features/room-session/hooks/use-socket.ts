@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-
 import { io, Socket } from "socket.io-client";
 import Peer from "simple-peer";
 
@@ -21,7 +20,7 @@ import type {
   MicrophoneUpdatePayload,
 } from "../model/types";
 
-import { RoomMessage } from "../model/use-room-session";
+import type { RoomMessage } from "@/src/entities/message";
 
 interface UseSocketProps {
   roomId: string;
@@ -30,15 +29,10 @@ interface UseSocketProps {
   userAvatar: string | undefined;
   nativeLanguage: string;
   stream: MediaStream | null;
-
   peersRef: React.MutableRefObject<Map<string, Peer.Instance>>;
-
   createPeer: (socketId: string, initiator: boolean) => Peer.Instance | null;
-
   removePeer: (socketId: string) => void;
-
   setSubtitle: (data: SubtitlePayload) => void;
-
   setMessage: (message: RoomMessage) => void;
 }
 
@@ -61,22 +55,14 @@ export function useSocket({
   const streamRef = useRef<MediaStream | null>(stream);
 
   const [socketId, setSocketId] = useState("");
-
   const [participants, setParticipants] = useState<Map<string, Participant>>(
     new Map(),
   );
 
-  /*
-   * Всегда держим актуальный stream.
-   */
   useEffect(() => {
     streamRef.current = stream;
   }, [stream]);
 
-  /*
-   * Если stream появился уже после подключения socket,
-   * запускаем AudioSender.
-   */
   useEffect(() => {
     const socket = socketRef.current;
 
@@ -90,7 +76,6 @@ export function useSocket({
     }
 
     audioSenderRef.current = new AudioSender(socket);
-
     audioSenderRef.current.start(stream);
     audioSenderRef.current.setTranslationEnabled(false);
 
@@ -100,9 +85,6 @@ export function useSocket({
     };
   }, [stream]);
 
-  /*
-   * WebRTC signal -> Socket.IO
-   */
   const handleSignal = useCallback((signal: SignalData) => {
     const socket = socketRef.current;
 
@@ -140,9 +122,6 @@ export function useSocket({
     }
   }, []);
 
-  /*
-   * Chat
-   */
   const sendMessage = useCallback(
     (text: string) => {
       const socket = socketRef.current;
@@ -207,9 +186,6 @@ export function useSocket({
     [roomId, userId],
   );
 
-  /*
-   * SOCKET CONNECTION
-   */
   useEffect(() => {
     if (!userId || !userName) {
       return;
@@ -219,7 +195,6 @@ export function useSocket({
 
     if (!signalingUrl) {
       console.error("[Socket] NEXT_PUBLIC_SIGNALING_URL is not defined");
-
       return;
     }
 
@@ -231,9 +206,6 @@ export function useSocket({
 
     socketRef.current = socket;
 
-    /*
-     * CONNECT
-     */
     const handleConnect = () => {
       setSocketId(socket.id ?? "");
 
@@ -241,7 +213,6 @@ export function useSocket({
 
       if (currentStream && !audioSenderRef.current) {
         audioSenderRef.current = new AudioSender(socket);
-
         audioSenderRef.current.start(currentStream);
         audioSenderRef.current.setTranslationEnabled(false);
       }
@@ -257,46 +228,18 @@ export function useSocket({
       socket.emit("join-room", payload);
     };
 
-    /*
-     * DISCONNECT
-     */
-    const handleDisconnect = (reason: string) => {};
-
-    /*
-     * ERROR
-     */
     const handleConnectError = (error: Error) => {
       console.error("[Socket] Connection error:", error);
     };
 
-    socket.on("connect", handleConnect);
-    socket.on("disconnect", handleDisconnect);
-    socket.on("connect_error", handleConnectError);
-
-    /*
-     * CHAT
-     */
     const handleNewMessage = (message: RoomMessage) => {
       setMessage(message);
     };
 
-    socket.on("chat:new", handleNewMessage);
-
-    /*
-     * SUBTITLES
-     */
     const handleSubtitle = (data: SubtitlePayload) => {
       setSubtitle(data);
     };
 
-    socket.on("subtitle", handleSubtitle);
-
-    /*
-     * EXISTING USERS
-     *
-     * Этот клиент зашёл позже.
-     * Он должен создать initiator peer.
-     */
     const handleExistingUsers = ({ users }: ExistingUsersPayload) => {
       users.forEach(
         ({
@@ -329,16 +272,6 @@ export function useSocket({
       );
     };
 
-    socket.on("existing-users", handleExistingUsers);
-
-    /*
-     * USER CONNECTED
-     *
-     * Этот клиент уже находился в комнате.
-     * Новый клиент подключился.
-     *
-     * Старый клиент создаёт non-initiator peer.
-     */
     const handleUserConnected = ({
       socketId: remoteSocketId,
       userName: remoteUserName,
@@ -367,66 +300,45 @@ export function useSocket({
       createPeer(remoteSocketId, false);
     };
 
-    socket.on("user-connected", handleUserConnected);
-
-    /*
-     * OFFER
-     */
     const handleOffer = ({ offer, from }: OfferPayload) => {
       let peer = peersRef.current.get(from);
 
       if (!peer) {
-        peer = createPeer(from, false);
-      }
+        const createdPeer = createPeer(from, false);
 
-      if (!peer) {
-        console.error("[Socket] Cannot create peer for offer:", from);
+        if (!createdPeer) {
+          console.error("[Socket] Cannot create peer for offer:", from);
+          return;
+        }
 
-        return;
+        peer = createdPeer;
       }
 
       peer.signal(offer);
     };
 
-    socket.on("offer", handleOffer);
-
-    /*
-     * ANSWER
-     */
     const handleAnswer = ({ answer, from }: AnswerPayload) => {
       const peer = peersRef.current.get(from);
 
       if (!peer) {
-        console.error("[Socket] Peer not found for answer:", from);
-
+        console.warn("[Socket] Peer not found for answer:", from);
         return;
       }
 
       peer.signal(answer);
     };
 
-    socket.on("answer", handleAnswer);
-
-    /*
-     * ICE
-     */
     const handleIceCandidate = ({ candidate, from }: IceCandidatePayload) => {
       const peer = peersRef.current.get(from);
 
       if (!peer) {
         console.warn("[Socket] Peer not found for ICE:", from);
-
         return;
       }
 
       peer.signal(candidate);
     };
 
-    socket.on("ice-candidate", handleIceCandidate);
-
-    /*
-     * CAMERA
-     */
     const handleCameraUpdate = ({
       socketId: remoteSocketId,
       enabled,
@@ -452,11 +364,6 @@ export function useSocket({
       });
     };
 
-    socket.on("camera:update", handleCameraUpdate);
-
-    /*
-     * MICROPHONE
-     */
     const handleMicUpdate = ({
       socketId: remoteSocketId,
       enabled,
@@ -479,11 +386,6 @@ export function useSocket({
       });
     };
 
-    socket.on("mic:update", handleMicUpdate);
-
-    /*
-     * USER DISCONNECTED
-     */
     const handleUserDisconnected = ({
       socketId: remoteSocketId,
     }: UserDisconnectedPayload) => {
@@ -498,36 +400,31 @@ export function useSocket({
       });
     };
 
+    socket.on("connect", handleConnect);
+    socket.on("connect_error", handleConnectError);
+    socket.on("chat:new", handleNewMessage);
+    socket.on("subtitle", handleSubtitle);
+    socket.on("existing-users", handleExistingUsers);
+    socket.on("user-connected", handleUserConnected);
+    socket.on("offer", handleOffer);
+    socket.on("answer", handleAnswer);
+    socket.on("ice-candidate", handleIceCandidate);
+    socket.on("camera:update", handleCameraUpdate);
+    socket.on("mic:update", handleMicUpdate);
     socket.on("user-disconnected", handleUserDisconnected);
 
-    /*
-     * CLEANUP
-     */
     return () => {
       socket.off("connect", handleConnect);
-
-      socket.off("disconnect", handleDisconnect);
-
       socket.off("connect_error", handleConnectError);
-
       socket.off("chat:new", handleNewMessage);
-
       socket.off("subtitle", handleSubtitle);
-
       socket.off("existing-users", handleExistingUsers);
-
       socket.off("user-connected", handleUserConnected);
-
       socket.off("offer", handleOffer);
-
       socket.off("answer", handleAnswer);
-
       socket.off("ice-candidate", handleIceCandidate);
-
       socket.off("camera:update", handleCameraUpdate);
-
       socket.off("mic:update", handleMicUpdate);
-
       socket.off("user-disconnected", handleUserDisconnected);
 
       audioSenderRef.current?.stop();
@@ -567,13 +464,9 @@ export function useSocket({
     audioSenderRef,
     socketId,
     participants,
-
     handleSignal,
-
     disconnectSocket,
-
     sendMessage,
-
     updateCamera,
     updateMicrophone,
     updateLanguage,
