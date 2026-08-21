@@ -8,7 +8,7 @@ interface Props {
   session: Session;
 }
 
-function ParticipantSkeleton() {
+function ParticipantCustomSkeleton() {
   return (
     <div className="flex items-center gap-3 py-2">
       <div className="w-10 h-10 rounded-full bg-(--color-surface-strong) animate-pulse shrink-0" />
@@ -33,7 +33,7 @@ export default function SessionParticipants({ session }: Props) {
         {isLoading ? (
           <>
             {[1, 2, 3, 4, 5].map((i) => (
-              <ParticipantSkeleton key={i} />
+              <ParticipantCustomSkeleton key={i} />
             ))}
           </>
         ) : (

@@ -139,25 +139,28 @@ export default function RoomClient({
 
           {remoteVideosArray.map(([id, remoteStream]) => {
             const remoteSubtitle = subtitles.get(id) ?? null;
+            const participant = participants.get(id);
+            const userId = participant?.userId ?? id;
+
             return (
               <div key={id} className="relative">
                 <RemoteVideoCard
                   stream={remoteStream}
                   width={mainVideo.width}
                   height={mainVideo.height}
-                  userName={
-                    participants.get(id)?.userName ?? `User ${id.slice(0, 5)}`
-                  }
-                  avatar={participants.get(id)?.userAvatar}
-                  cameraEnabled={participants.get(id)?.cameraEnabled ?? true}
-                  microphoneEnabled={
-                    participants.get(id)?.microphoneEnabled ?? true
-                  }
-                  userId={participants.get(id)?.userId ?? id}
+                  userName={participant?.userName ?? `User ${id.slice(0, 5)}`}
+                  avatar={participant?.userAvatar}
+                  cameraEnabled={participant?.cameraEnabled ?? true}
+                  microphoneEnabled={participant?.microphoneEnabled ?? true}
+                  userId={userId}
                   onFullscreen={() =>
-                    toggleFullscreen(document.getElementById(`video-${id}`), id)
+                    toggleFullscreen(
+                      document.getElementById(`video-${userId}`),
+                      id,
+                    )
                   }
                 />
+
                 <SubtitleBubble
                   key={
                     remoteSubtitle

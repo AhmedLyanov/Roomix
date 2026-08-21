@@ -1,6 +1,6 @@
 import { Skeleton } from "antd";
 
-export function SessionHistorySkeleton() {
+export function CustomSkeleton() {
   return (
     <div className="space-y-4">
       <Skeleton active paragraph={{ rows: 1 }} />
