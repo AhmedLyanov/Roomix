@@ -1,5 +1,5 @@
-import { SessionsListTabs } from "./sessions-list-tabs";
-import { SessionsListTable } from "./sessions-list-table";
+import { SessionsListTabs } from "../session-list-tabs/sessions-list-tabs";
+import { SessionsListTable } from "../sessions-list-table/sessions-list-table";
 
 interface Props {
   userId: string;

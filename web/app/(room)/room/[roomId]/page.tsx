@@ -4,14 +4,8 @@ import { useState } from "react";
 import { UserButton, useUser } from "@clerk/nextjs";
 import { useParams } from "next/navigation";
 
-import {
-  RoomControl,
-  ShareLink,
-  useRoomSession,
-  RoomLayoutSwitcher,
-  RoomSidebar,
-} from "@/src/features";
-
+import { ShareLink, useRoomSession, RoomLayoutSwitcher } from "@/src/features";
+import { RoomSidebar, RoomControl } from "@/src/widgets/room/";
 import { Button } from "@/src/shared";
 
 import {

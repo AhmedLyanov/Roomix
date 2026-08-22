@@ -1,1 +1,1 @@
-export { SessionsList } from "./ui/sessions-list";
+export { SessionsList } from "./ui/session-list/sessions-list";

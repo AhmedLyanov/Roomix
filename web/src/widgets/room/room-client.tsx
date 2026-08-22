@@ -7,8 +7,8 @@ import { useFullscreen } from "@/src/shared/lib/hooks/use-full-screen";
 
 import { useRoomSession } from "@/src/features";
 
-import { LocalVideoCard } from "./local-video/local-video";
-import { RemoteVideoCard } from "./remote-video/remote-video";
+import { LocalVideoCard } from "./ui/local-video/local-video";
+import { RemoteVideoCard } from "./ui/remote-video/remote-video";
 
 interface SubtitleBubbleProps {
   subtitle: {
